@@ -546,7 +546,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
   <div class="section-title"><div><h3>3. Análise de Missões</h3><p>Organize a análise das 15 missões com base na tabela anexada: pontuação, proximidade, dificuldade, vantagem e prioridade.</p></div></div>
   <div class="card"><div id="missionAnalysisWrap"></div></div>
 
-  <div class="section-title"><div><h3>4. Treino de Partida</h3><p>Use o cronômetro para simular a partida oficial de 2min30.</p></div></div>
+  <div class="section-title"><div><h3>4. Treino de Partida</h3><p>Simule a partida oficial de 2min30 com o cronômetro.</p></div></div>
   <div class="card">
     <div class="timer" id="timer">2:30</div><div class="timer-state" id="timerState">Pronto para treinar</div>
     <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap" class="no-print">
@@ -1155,7 +1155,7 @@ function renderMissionAnalysis(){
  w.innerHTML=`<div class="analysis-table-wrap"><table class="analysis-table"><thead><tr><th>Missão</th><th>Pontuação</th><th>Proximidade</th><th>Dificuldade</th><th>Vantagem</th><th>Prioridade</th><th></th></tr></thead><tbody>${state.missionAnalysis.map((r,i)=>`<tr><td><b>${i+1}. ${esc(r.mission)}</b></td><td><input value="${esc(r.score)}" placeholder="Ex.: 30" onchange="state.missionAnalysis[${i}].score=this.value;queueSave()"></td><td><input value="${esc(r.proximity)}" placeholder="Baixa/Média/Alta" onchange="state.missionAnalysis[${i}].proximity=this.value;queueSave()"></td><td><input value="${esc(r.difficulty)}" placeholder="Fácil/Média/Difícil" onchange="state.missionAnalysis[${i}].difficulty=this.value;queueSave()"></td><td><input value="${esc(r.advantage)}" placeholder="Estratégica..." onchange="state.missionAnalysis[${i}].advantage=this.value;queueSave()"></td><td><input value="${esc(r.priority)}" placeholder="1, 2, 3..." onchange="state.missionAnalysis[${i}].priority=this.value;queueSave()"></td><td><button class="info-preview-btn" title="Visualizar análise completa" onclick="previewCollection('missionAnalysis',${i},'${esc(r.mission)}',[['score','Pontuação'],['proximity','Proximidade'],['difficulty','Dificuldade'],['advantage','Vantagem'],['priority','Prioridade']])">🔍</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 function addRoundTest(){
- state.roundTests.push({date:'',launches:'',errors:'',successes:'',finalScore:'',time:'',notes:'',collapsed:false,missionsText:''});
+ state.roundTests.push({date:'',launches:'',errors:'',successes:'',finalScore:'',time:'',notes:'',collapsed:false,missions:missionNames.map(name=>({name,completed:false}))});
  renderRoundTests();queueSave();
 }
 function removeRoundTest(i){state.roundTests.splice(i,1);renderRoundTests();queueSave()}
@@ -1169,19 +1169,14 @@ function renderRoundTests(){
      r.missionsText=old.map((m,j)=>m&&m.completed?String(j+1):'').filter(Boolean).join(', ');
    }
  });
- w.innerHTML=state.roundTests.map((r,i)=>`<div class="round-test${r.collapsed?' collapsed':''}">
-   <div class="round-test-head"><h4>Round de teste ${i+1}${r.date?' — '+esc(r.date):''}</h4>
-   <div class="info-actions"><button type="button" class="round-collapse-btn no-print" title="${r.collapsed?'Expandir':'Minimizar'} round" onclick="toggleRoundTest(${i})">${r.collapsed?'▸':'▾'}</button><button class="info-preview-btn" title="Visualizar round completo" onclick="previewRoundTest(${i})">🔍</button><button class="btn no-print" onclick="removeRoundTest(${i})">✕ Remover</button></div></div>
-   <div class="round-test-body"><div class="form-grid"><div class="field"><label>Data</label><input type="date" value="${esc(r.date)}" onchange="state.roundTests[${i}].date=this.value;renderRoundTests();queueSave()"></div><div class="field"><label>Número de lançamentos</label><input type="number" min="0" value="${esc(r.launches)}" onchange="state.roundTests[${i}].launches=this.value;queueSave()"></div><div class="field"><label>Erros</label><input type="number" min="0" value="${esc(r.errors)}" onchange="state.roundTests[${i}].errors=this.value;queueSave()"></div><div class="field"><label>Acertos</label><input type="number" min="0" value="${esc(r.successes)}" onchange="state.roundTests[${i}].successes=this.value;queueSave()"></div><div class="field"><label>Pontuação final</label><input type="number" min="0" value="${esc(r.finalScore)}" onchange="state.roundTests[${i}].finalScore=this.value;queueSave()"></div><div class="field"><label>Tempo</label><input value="${esc(r.time)}" placeholder="Ex.: 02:30" onchange="state.roundTests[${i}].time=this.value;queueSave()"></div></div>
-   <div class="field"><label>Missões realizadas</label><input value="${esc(r.missionsText||'')}" placeholder="Ex.: 1, 3, 5, 8, 12" onchange="state.roundTests[${i}].missionsText=this.value;queueSave()"></div>
-   <div class="field"><label>Observações</label><textarea placeholder="O que aconteceu neste round? O que deve ser ajustado?" onchange="state.roundTests[${i}].notes=this.value;queueSave()">${esc(r.notes)}</textarea></div></div></div>`).join('');
+ w.innerHTML=state.roundTests.map((r,i)=>`<div class="round-test${r.collapsed?' collapsed':''}"><div class="round-test-head"><h4>Round de teste ${i+1}${r.date?' — '+esc(r.date):''}</h4><div class="info-actions"><button type="button" class="round-collapse-btn no-print" title="${r.collapsed?'Expandir':'Minimizar'} round" onclick="toggleRoundTest(${i})">${r.collapsed?'▸':'▾'}</button><button class="info-preview-btn" title="Visualizar round completo" onclick="previewRoundTest(${i})">🔍</button><button class="btn no-print" onclick="removeRoundTest(${i})">✕ Remover</button></div></div><div class="round-test-body"><div class="form-grid"><div class="field"><label>Data</label><input type="date" value="${esc(r.date)}" onchange="state.roundTests[${i}].date=this.value;renderRoundTests();queueSave()"></div><div class="field"><label>Número de lançamentos</label><input type="number" min="0" value="${esc(r.launches)}" onchange="state.roundTests[${i}].launches=this.value;queueSave()"></div><div class="field"><label>Erros</label><input type="number" min="0" value="${esc(r.errors)}" onchange="state.roundTests[${i}].errors=this.value;queueSave()"></div><div class="field"><label>Acertos</label><input type="number" min="0" value="${esc(r.successes)}" onchange="state.roundTests[${i}].successes=this.value;queueSave()"></div><div class="field"><label>Pontuação final</label><input type="number" min="0" value="${esc(r.finalScore)}" onchange="state.roundTests[${i}].finalScore=this.value;queueSave()"></div><div class="field"><label>Tempo</label><input value="${esc(r.time)}" placeholder="Ex.: 02:30" onchange="state.roundTests[${i}].time=this.value;queueSave()"></div></div><div class="field"><label>Missões realizadas</label><input value="${esc(r.missionsText||'')}" placeholder="Ex.: 1, 3, 5, 8, 12" onchange="state.roundTests[${i}].missionsText=this.value;queueSave()"></div><div class="field"><label>Observações</label><textarea placeholder="O que aconteceu neste round? O que deve ser ajustado?" onchange="state.roundTests[${i}].notes=this.value;queueSave()">${esc(r.notes)}</textarea></div></div></div>`).join('');
 }
+
 function toggleRoundTest(i){const r=state.roundTests[i];if(!r)return;r.collapsed=!r.collapsed;renderRoundTests();queueSave()}
 function previewRoundTest(i){
  const r=state.roundTests[i];if(!r)return;
- let done=r.missionsText||'';
- if(!done && Array.isArray(r.missions)) done=r.missions.map((m,j)=>m&&m.completed?String(j+1):'').filter(Boolean).join(', ');
- openInfoViewer('Round de teste '+(i+1),[['Data',r.date],['Número de lançamentos',r.launches],['Erros',r.errors],['Acertos',r.successes],['Pontuação final',r.finalScore],['Tempo',r.time],['Missões realizadas',done],['Observações',r.notes]]);
+ const done=r.missionsText||((r.missions||[]).map((m,j)=>m.completed?String(j+1):'').filter(Boolean).join(', '))||'Nenhuma';
+ openInfoViewer('Round de teste '+(i+1),[['Data',r.date],['Número de lançamentos',r.launches],['Erros',r.errors],['Acertos',r.successes],['Pontuação final',r.finalScore],['Tempo',r.time],['Missões concluídas',done],['Observações',r.notes]]);
 }
 
 function addMatch(){state.matches.push({date:'',score:'',missions:'',notes:''});renderMatches();queueSave()}
