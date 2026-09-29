@@ -617,7 +617,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 <section id="meetings" class="view">
   <div class="hero"><h2>📅 Reuniões</h2><p>Registre o que foi realizado em cada encontro da equipe e os responsáveis pelas atividades.</p></div>
 
-  <div class="section-title"><div><h3>Tarefas da equipe</h3><p>Registre os próximos passos e acompanhe as tarefas da equipe.</p></div><button class="btn primary no-print" onclick="openTaskModal()">＋ Nova tarefa</button></div>
+  <div class="section-title"><div><h3>Tarefas da equipe</h3><p>Registre os próximos passos e acompanhe as tarefas da equipe.</p></div><div class="actions no-print"><button class="btn ghost" id="taskInfoToggle" onclick="toggleTaskInfo()">🔍 Informações</button><button class="btn primary" onclick="openTaskModal()">＋ Nova tarefa</button></div></div>
   <div class="card" id="nextTasks"></div>
   <div class="section-title" style="margin-top:18px"><div><h3>Quadro Kanban</h3><p>Organize as tarefas em <b>A fazer</b>, <b>Em andamento</b> e <b>Concluído</b>. As alterações ficam salvas automaticamente.</p></div></div>
   <div class="card"><div id="tasksKanban"></div></div>
@@ -1639,6 +1639,13 @@ function removeTask(i){
  state.tasks.splice(i,1);renderTasks();queueSave();updateStats();toast('Tarefa removida.');
 }
 function taskStatusClass(status){return status==='Em andamento'?'blue':status==='Concluída'?'green':'yellow'}
+function toggleTaskInfo(){
+ const w=document.getElementById('nextTasks'),b=document.getElementById('taskInfoToggle');
+ if(!w||!b)return;
+ const hidden=w.style.display==='none';
+ w.style.display=hidden?'block':'none';
+ b.textContent=hidden?'🔍 Ocultar informações':'🔍 Informações';
+}
 function renderTasks(){
  const w=document.getElementById('nextTasks');
  if(!w)return;
@@ -1661,7 +1668,7 @@ function renderTasksKanban(){
  w.innerHTML=`<div class="kanban" style="grid-template-columns:repeat(3,1fr)">${statuses.map(([status,tag])=>{
    const items=state.tasks.map((t,i)=>({t,i})).filter(x=>(x.t.status||'A fazer')===status);
    return `<div class="column"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h4>${status}</h4><span class="tag ${tag}">${items.length}</span></div>${items.length?items.map(({t,i})=>`<div class="task">
-     <div class="kanban-task-head"><div class="kanban-task-title">${esc(t.title||'Sem título')}</div><button class="kanban-view-btn" title="Editar tarefa" onclick="openTaskModal(${i})">✏️</button></div>
+     <div class="kanban-task-head"><div class="kanban-task-title">${esc(t.title||'Sem título')}</div><div style="display:flex;gap:5px"><button class="kanban-view-btn" title="Visualizar tarefa" onclick="previewCollection('tasks',${i},'Tarefa',[[\'title\',\'Tarefa\'],[\'area\',\'Área\'],[\'owner\',\'Responsável\'],[\'due\',\'Prazo\'],[\'status\',\'Status\']])">🔍</button><button class="kanban-view-btn" title="Editar tarefa" onclick="openTaskModal(${i})">✏️</button></div></div>
      <small>${esc(t.area||'Equipe')}</small>${t.owner?`<small>👤 ${esc(t.owner)}</small>`:''}${t.due?`<small>📅 ${esc(formatDate(t.due))}</small>`:''}
      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap"><select style="flex:1;min-width:120px" aria-label="Status da tarefa" onchange="updateTask(${i},'status',this.value)"><option ${status==='A fazer'?'selected':''}>A fazer</option><option ${status==='Em andamento'?'selected':''}>Em andamento</option><option ${status==='Concluída'?'selected':''}>Concluída</option></select><button class="btn" title="Remover tarefa" onclick="removeTask(${i})">✕</button></div>
    </div>`).join(''):'<div class="empty">Nenhuma tarefa nesta coluna.</div>'}</div>`;
