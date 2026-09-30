@@ -365,6 +365,9 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 .gallery-caption-text{display:block}
 .gallery-caption-empty{color:#7a8a8f;font-style:italic}
 </style>
+<style id="gallery-v44-edit-delete">
+.gallery-editor-extra-actions .btn{font-size:12px}
+</style>
 <style id="gallery-v43-final">
 /* Galeria: imagem maior e apenas ícones de edição/visualização abaixo */
 .gallery-image{height:280px!important;min-height:280px!important;position:relative!important;overflow:hidden!important;background:#eef5f2!important}
@@ -769,6 +772,10 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
         <div class="field"><label>Data</label><input id="galleryEditorDate" type="date"></div>
       </div>
       <div class="field"><label>Legenda / contexto</label><textarea id="galleryEditorCaption" placeholder="Descreva o que está acontecendo na foto."></textarea></div>
+      <div class="gallery-editor-extra-actions" id="galleryEditorExtraActions" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button type="button" class="btn ghost" onclick="clearGalleryCaptionFromEditor()">🗑️ Excluir legenda</button>
+        <button type="button" class="btn ghost" onclick="deleteGalleryRecordFromEditor()">🗑️ Excluir foto e informações</button>
+      </div>
     </div>
     <div class="image-editor" style="margin-top:14px">
       <div class="crop-stage"><canvas id="cropCanvas" width="700" height="500"></canvas></div>
@@ -1506,6 +1513,8 @@ function openImageEditor(kind,index,src,isLogo){
   const isGallery=kind==='galleryPhoto' && state.gallery[index];
   if(galleryFields){
     galleryFields.style.display=isGallery?'block':'none';
+    const extra=document.getElementById('galleryEditorExtraActions');
+    if(extra) extra.style.display=isGallery?'flex':'none';
     if(isGallery){
       document.getElementById('galleryEditorTitle').value=state.gallery[index].title||'';
       document.getElementById('galleryEditorDate').value=state.gallery[index].date||'';
@@ -1591,6 +1600,26 @@ document.getElementById('replaceImageInput')?.addEventListener('change',e=>{
   };
   reader.readAsDataURL(f);e.target.value='';
 });
+function clearGalleryCaptionFromEditor(){
+  const i=imageEditorState.index;
+  if(imageEditorState.kind!=='galleryPhoto' || !state.gallery[i])return;
+  document.getElementById('galleryEditorCaption').value='';
+  state.gallery[i].caption='';
+  delete state.gallery[i].description; delete state.gallery[i].legend;
+  queueSave();
+  renderGallery();
+  toast('Legenda excluída.');
+}
+function deleteGalleryRecordFromEditor(){
+  const i=imageEditorState.index;
+  if(imageEditorState.kind!=='galleryPhoto' || !state.gallery[i])return;
+  if(!confirm('Excluir esta foto e todas as informações dela?'))return;
+  state.gallery.splice(i,1);
+  queueSave();
+  renderGallery();
+  closeImageEditor();
+  toast('Foto e informações excluídas.');
+}
 function saveEditedImage(){
   const img=imageEditorState.img;if(!img)return;
   const out=document.createElement('canvas');
