@@ -350,6 +350,21 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 .gallery-caption-text{display:block}
 .gallery-caption-empty{color:#7a8a8f;font-style:italic}
 </style>
+
+<style id="gallery-final-fix">
+.gallery-image{position:relative!important;overflow:hidden!important}
+.gallery-photo-tools{position:absolute;top:10px;right:10px;display:flex;gap:8px;z-index:20}
+.gallery-photo-tools button{width:40px;height:40px;border:0;border-radius:50%;display:grid;place-items:center;background:rgba(18,54,61,.92);color:#fff;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.gallery-photo-tools button:hover{background:rgba(18,54,61,1)}
+.gallery-photo-tools button:focus{outline:3px solid rgba(90,158,77,.55);outline-offset:2px}
+.gallery-details{display:none!important}
+.gallery-details.gallery-details-visible{display:block!important}
+.gallery-details .gallery-info{padding:12px 13px 14px}
+.gallery-caption{display:block!important;margin-top:8px;padding:10px 11px;border:1px solid #dce8e5;border-radius:10px;background:#fff;color:#17313a;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
+.gallery-caption-label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#61727a;margin-bottom:4px}
+.gallery-caption-text{display:block}
+.gallery-caption-empty{color:#7a8a8f;font-style:italic}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1382,18 +1397,18 @@ function renderGallery(){
  const w=document.getElementById('galleryWrap');if(!w)return;
  if(!state.gallery.length){w.innerHTML='<div class="empty">Registre a primeira foto da temporada: treino, protótipo, visita, apresentação ou celebração.</div>';return}
  w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>{
-   const caption=(r.caption ?? r.description ?? r.legend ?? '').trim();
-   const title=(r.title||'Sem título').trim();
+   const caption=String(r.caption ?? r.description ?? r.legend ?? '').trim();
+   const title=String(r.title||'Sem título').trim();
    const detailsId=`galleryDetails_${i}`;
    return `<div class="gallery-item">
-  <div class="gallery-image image-editable" title="Foto da galeria">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`: '📷 Sem foto'}
-   ${r.photo?`<button type="button" class="gallery-photo-overlay gallery-photo-zoom" onclick="event.stopPropagation();toggleGalleryDetails(${i})" title="Visualizar legenda e informações" aria-label="Visualizar legenda e informações">🔍</button><button type="button" class="gallery-photo-overlay gallery-photo-edit" onclick="event.stopPropagation();openGalleryPhotoEditor(${i})" title="Editar foto" aria-label="Editar foto">✎</button>`:''}
+  <div class="gallery-image" title="Foto da galeria">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`:'📷 Sem foto'}
+   ${r.photo?`<div class="gallery-photo-tools" aria-label="Ações da foto"><button type="button" onclick="event.stopPropagation();openGalleryInfo(${i})" title="Visualizar informações e legenda" aria-label="Visualizar informações e legenda">🔍</button><button type="button" onclick="event.stopPropagation();openGalleryPhotoEditor(${i})" title="Editar foto" aria-label="Editar foto">✎</button></div>`:''}
   </div>
   <div class="gallery-actions no-print">
    <input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)">
    <button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>
    <button class="btn" onclick="openGalleryEdit(${i})" title="Editar título, data e legenda">✏️</button>
-   <button class="btn" onclick="toggleGalleryDetails(${i})" title="Visualizar informações">🔍</button>
+   <button class="btn" onclick="openGalleryInfo(${i})" title="Visualizar informações">🔍</button>
    ${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}
    <button class="btn" onclick="removeGalleryItem(${i})">✕</button>
   </div>
@@ -1409,9 +1424,15 @@ function renderGallery(){
 }
 function toggleGalleryDetails(i){
  const el=document.getElementById(`galleryDetails_${i}`); if(!el)return;
- const isOpen=el.classList.toggle('open');
+ const isOpen=el.classList.toggle('gallery-details-visible');
  el.setAttribute('aria-hidden',String(!isOpen));
 }
+function openGalleryInfo(i){
+ toggleGalleryDetails(i);
+ const el=document.getElementById(`galleryDetails_${i}`);
+ if(el && el.classList.contains('gallery-details-visible')) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 function openGalleryEdit(i){
  const r=state.gallery[i]; if(!r)return;
  const title=prompt('Título da foto:',r.title||''); if(title===null)return;
