@@ -62,6 +62,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .rubric-evidence{margin-top:10px}
 .rubric-evidence textarea{width:100%;min-height:72px;border:1px solid var(--line);background:#fbfdfc;border-radius:11px;padding:10px;color:var(--ink);resize:vertical}
 .rubric-evidence textarea:focus{border-color:#6bb1c5;box-shadow:0 0 0 3px rgba(29,131,168,.1);outline:none}
+.rubric-table{width:100%;overflow:auto;border:1px solid var(--line);border-radius:12px}.rubric-grid{min-width:900px;display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr}.rubric-grid>div{padding:9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:11px;line-height:1.35}.rubric-grid>div:nth-child(5n){border-right:0}.rubric-grid .rubric-colhead{background:#eef3fb;font-weight:900;text-align:center;font-size:12px}.rubric-grid .rubric-criterion{grid-column:1/-1;background:#edf5f3;font-weight:900;font-size:12px}.rubric-grid .rubric-sub{background:#fbfdfc;font-weight:800}.rubric-cell{position:relative;cursor:pointer;background:#fff}.rubric-cell label{display:flex;gap:7px;align-items:flex-start;height:100%;cursor:pointer}.rubric-cell input{margin-top:2px;accent-color:#4b943f}.rubric-cell.selected{background:#eef8ec;box-shadow:inset 0 0 0 2px #4b943f}.rubric-excellence textarea{width:100%;min-height:70px;border:1px solid var(--line);background:#fbfdfc;border-radius:8px;padding:8px;color:var(--ink);resize:vertical}.rubric-excellence textarea:focus{border-color:#6bb1c5;outline:none}.rubric-excellence .hint{font-size:10px;color:var(--muted);margin-top:5px}
 .gallery-caption-preview{margin-top:9px;padding:9px 10px;border-radius:10px;background:#f5f9f8;border:1px solid #e1ece8}
 .gallery-caption-preview b{display:block;font-size:12px;margin-bottom:3px}
 .gallery-caption-preview small{display:block;color:var(--muted);line-height:1.45;white-space:pre-wrap;word-break:break-word}
@@ -507,7 +508,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
     </div>
   </div>
 
-  <div class="section-title"><div><h3>3. Rubrica do Projeto de Inovação</h3><p>Use a autoavaliação para identificar o que precisa ser desenvolvido antes da avaliação.</p></div></div>
+  <div class="section-title"><div><h3>3. Rubrica do Projeto de Inovação</h3><p>Preencha cada linha da rubrica, selecionando o nível que melhor representa a equipe e registrando evidências quando necessário.</p></div></div>
   <div id="innovationRubric"></div>
 </section>
 
@@ -533,7 +534,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
     </div>
   </div>
 
-  <div class="section-title"><div><h3>4. Rubrica do Design do Robô</h3><p>Autoavalie o processo de identificação, design, criação, iteração e comunicação.</p></div></div>
+  <div class="section-title"><div><h3>4. Rubrica do Design do Robô</h3><p>Preencha cada linha da rubrica de acordo com o processo de Design do Robô e registre evidências quando necessário.</p></div></div>
   <div id="designRubric"></div>
 </section>
 
@@ -1703,18 +1704,48 @@ function renderTasksKanban(){
 }
 
 const innovationRubric=[
- ['IDENTIFICAÇÃO','Problema claramente definido e bem pesquisado.',['Definição pouco clara do problema / pesquisa mínima','Definição parcialmente clara / pesquisa parcial de uma ou mais fontes','Definição clara / pesquisa detalhada de variedade de fontes','Que evidência demonstra excelência?']],
- ['DESIGN','Plano de projeto e desenvolvimento das ideias com participação da equipe.',['Plano mínimo / participação mínima','Plano parcial / participação parcial','Plano claro / participação clara de todos','Que evidência demonstra excelência?']],
- ['CRIAÇÃO','Solução inovadora representada por protótipo/desenho.',['Explicação mínima / protótipo pouco claro','Explicação simples / protótipo simples','Explicação detalhada / protótipo detalhado','Que evidência demonstra excelência?']],
- ['ITERAÇÃO','Compartilhamento, feedback e melhorias na solução.',['Compartilhamento mínimo / melhorias mínimas','Compartilhamento com pelo menos um grupo / melhorias parciais','Compartilhamento com vários grupos / melhorias claras','Que evidência demonstra excelência?']],
- ['COMUNICAÇÃO','Explicação da solução, impacto potencial e celebração do progresso.',['Explicação pouco clara / entusiasmo mínimo','Explicação parcialmente clara / entusiasmo parcial','Explicação clara / orgulho ou entusiasmo claro','Que evidência demonstra excelência?']]
+ {key:'IDENTIFICAÇÃO',desc:'A equipe tinha um problema claramente definido e bem pesquisado.',rows:[
+  ['Definição do problema','Definição pouco clara do problema','Definição parcialmente clara do problema','Definição clara do problema',''],
+  ['Pesquisa','Evidências mínimas de pesquisa','Evidências parciais de pesquisa de uma ou mais fontes','Pesquisa clara e detalhada de uma variedade de fontes','']
+ ]},
+ {key:'DESIGN',desc:'A equipe trabalhou em conjunto na criação de um plano de projeto e no desenvolvimento de suas ideias.',rows:[
+  ['Plano de projeto','Evidências mínimas de um plano de projeto eficaz','Evidências parciais de um plano de projeto eficaz','Evidências claras de um plano de projeto eficaz',''],
+  ['Participação da equipe','Evidências mínimas de que o processo de desenvolvimento envolveu todos os membros da equipe','Evidências parciais de que o processo de desenvolvimento envolveu todos os membros da equipe','Evidências claras de que o processo de desenvolvimento envolveu todos os membros da equipe','']
+ ]},
+ {key:'CRIAÇÃO',desc:'A equipe desenvolveu uma ideia original ou baseou-se em uma ideia existente com um protótipo/desenho para representar sua solução.',rows:[
+  ['Inovação da solução','Explicação mínima com relação à inovação na solução','Explicação simples com relação à inovação na solução','Explicação detalhada com relação à inovação na solução',''],
+  ['Protótipo/desenho','Protótipo/desenho pouco claro para representar a solução','Protótipo/desenho simples para representar a solução','Protótipo/desenho detalhado para representar a solução','']
+ ]},
+ {key:'ITERAÇÃO',desc:'A equipe compartilhou suas ideias, coletou feedback e incluiu melhorias em sua solução.',rows:[
+  ['Compartilhamento','Compartilhamento mínimo da solução com outras pessoas','Solução compartilhada com pelo menos uma pessoa/grupo','Solução compartilhada com várias pessoas/grupos',''],
+  ['Melhorias com base em feedbacks','Evidências mínimas de melhorias com base em feedbacks','Evidências parciais de melhorias com base em feedbacks','Evidências claras de melhorias com base em feedbacks','']
+ ]},
+ {key:'COMUNICAÇÃO',desc:'Os alunos fizeram uma apresentação eficaz de sua solução, seu impacto sobre outras pessoas e comemoraram o progresso da equipe.',rows:[
+  ['Solução e impacto','Explicação pouco clara da solução e seu impacto potencial sobre outras pessoas','Explicação parcialmente clara da solução e seu impacto potencial sobre outras pessoas','Explicação clara da solução e seu impacto potencial sobre outras pessoas',''],
+  ['Orgulho e entusiasmo','A apresentação demonstra orgulho ou entusiasmo mínimo com o trabalho da equipe','A apresentação demonstra orgulho ou entusiasmo parcial com o trabalho da equipe','A apresentação claramente demonstra orgulho ou entusiasmo com o trabalho da equipe','']
+ ]}
 ];
 const designRubric=[
- ['IDENTIFICAÇÃO','Estratégia de missão, recursos de construção/codificação e orientação quando necessário.',['Evidências mínimas de estratégia / uso mínimo de recursos','Evidências parciais / uso de alguns recursos','Evidências claras / uso claro de recursos para apoiar a estratégia','Que evidência demonstra excelência?']],
- ['DESIGN','Colaboração e desenvolvimento de habilidades de construção e codificação.',['Participação e habilidades mínimas','Participação e habilidades parciais','Todos contribuem e demonstram habilidades claras','Que evidência demonstra excelência?']],
- ['CRIAÇÃO','Designs originais ou melhorias coerentes com a estratégia.',['Explicação pouco clara de acessórios e código/sensores','Explicação simples','Explicação clara de acessórios inovadores e uso inovador de código/sensores','Que evidência demonstra excelência?']],
- ['ITERAÇÃO','Testes repetidos e melhorias baseadas nos resultados.',['Evidências mínimas de testes/melhorias','Evidências parciais','Evidências claras de testes repetidos e melhorias','Que evidência demonstra excelência?']],
- ['COMUNICAÇÃO','Explicação do processo, lições aprendidas e celebração do progresso.',['Explicação pouco clara / orgulho mínimo','Explicação simples / orgulho parcial','Explicação detalhada / orgulho ou entusiasmo claro','Que evidência demonstra excelência?']]
+ {key:'IDENTIFICAÇÃO',desc:'A equipe definiu quais missões iria tentar realizar, explorou recursos de construção e codificação e buscou orientação conforme necessário.',rows:[
+  ['Estratégia de missão','Evidências mínimas de estratégia de missão','Evidências parciais de estratégia de missão','Evidências claras de estratégia de missão',''],
+  ['Construção/codificação','Uso mínimo de recursos de construção ou codificação','Uso de alguns recursos de construção ou codificação','Uso claro de recursos de construção ou codificação para apoiar na estratégia de missão','']
+ ]},
+ {key:'DESIGN',desc:'Os membros da equipe trabalharam colaborativamente em seus designs e desenvolveram as habilidades de construção e codificação necessárias.',rows:[
+  ['Contribuição de ideias','Evidências mínimas de que todos os membros da equipe contribuíram com ideias','Evidências parciais de que todos os membros da equipe contribuíram com ideias','Evidências claras de que todos os membros da equipe contribuíram com ideias',''],
+  ['Habilidades','Evidências mínimas de habilidades de construção e codificação em todos os membros da equipe','Evidências parciais de habilidades de construção e codificação em todos os membros da equipe','Evidências claras de habilidades de construção e codificação em todos os membros da equipe','']
+ ]},
+ {key:'CRIAÇÃO',desc:'A equipe desenvolveu designs originais ou melhorou os existentes de acordo com sua estratégia de missão.',rows:[
+  ['Acessórios','Explicação pouco clara dos acessórios e de seu propósito','Explicação simples dos acessórios e de seu propósito','Explicação clara de acessórios inovadores e de seu propósito',''],
+  ['Códigos e sensores','Explicação pouco clara do uso de códigos e/ou sensores','Explicação simples do uso de códigos e/ou sensores','Explicação clara do uso inovador de códigos e/ou sensores','']
+ ]},
+ {key:'ITERAÇÃO',desc:'A equipe testou seus robôs e códigos repetidamente para identificar áreas de melhoria e incorporou as descobertas em suas soluções.',rows:[
+  ['Testes do robô e do código','Evidências mínimas de testes do robô e do código','Evidências parciais de testes do robô e do código','Evidências claras de testes repetidos do robô e do código',''],
+  ['Melhorias com base em testes','Evidências mínimas de melhorias com base em testes','Evidências parciais de melhorias com base em testes','Evidências claras de melhorias com base em testes','']
+ ]},
+ {key:'COMUNICAÇÃO',desc:'A equipe explicou de forma eficaz o que aprendeu com o processo de design do robô e comemorou seu progresso.',rows:[
+  ['Processo e lições aprendidas','Explicação pouco clara do processo e lições aprendidas','Explicação simples do processo e lições aprendidas','Explicação detalhada do processo e lições aprendidas',''],
+  ['Orgulho e entusiasmo','A equipe demonstra orgulho ou entusiasmo mínimo pelo seu trabalho','A equipe demonstra orgulho ou entusiasmo parcial pelo seu trabalho','A equipe claramente demonstra orgulho ou entusiasmo pelo seu trabalho','']
+ ]}
 ];
 function initProjectPlan(){
  if(!state.projectPlan.length){
@@ -1742,22 +1773,37 @@ function renderProjectPlan(){
  }).join('');
 }
 
+function getRubricLine(prefix,criterion,row){
+ const key='rubricLine_'+prefix+'_'+criterion+'_'+row;
+ const value=Number(state[key]||0);
+ if(value)return value;
+ // Compatibilidade com escolhas feitas na versão anterior, que tinha uma seleção por critério.
+ const legacy=Number(state['rubric_'+prefix+'_'+criterion]||0);
+ return legacy;
+}
+function setRubricLine(prefix,criterion,row,value){
+ state['rubricLine_'+prefix+'_'+criterion+'_'+row]=value;
+ queueSave();renderRubrics();updateStats();toast('Nível da rubrica registrado.');
+}
 function renderRubricSet(id,arr,prefix){
  const target=document.getElementById(id);if(!target)return;
- target.innerHTML=`<div class="rubric-help">Marque o nível que melhor representa o estágio atual da equipe. <b>1 = Fase inicial</b>, <b>2 = Em desenvolvimento</b>, <b>3 = Finalizado</b> e <b>4 = Excedente</b>. Quando marcar o nível 4, registre abaixo qual evidência demonstra a excelência.</div>`+arr.map((r,i)=>{
-  const selected=getRubric(prefix,i);
-  return `<div class="rubric">
-   <div class="rubric-head">${r[0]} <span class="small muted">— ${r[1]}</span></div>
-   <div class="rubric-body">
-    <div class="rubric-levels">${r[2].map((x,l)=>`<label class="rubric-choice"><input type="radio" name="${prefix}${i}" value="${l+1}" ${selected===l+1?'checked':''} onchange="setRubric('${prefix}',${i},${l+1})"><span><strong>${l+1} — ${['Fase inicial','Em desenvolvimento','Finalizado','Excedente'][l]}</strong><br>${x}</span></label>`).join('')}</div>
-    <div class="rubric-evidence"><label class="small" style="font-weight:800;display:block;margin-bottom:5px">Evidência / observação da equipe</label><textarea placeholder="Registre uma evidência, exemplo, teste, feedback ou situação que justifique a escolha deste nível." oninput="state['rubricEvidence_${prefix}_${i}']=this.value;queueSave()">${esc(state['rubricEvidence_'+prefix+'_'+i]||'')}</textarea></div>
-   </div>
-  </div>`;
+ const levels=['Fase inicial','Em desenvolvimento','Finalizado','Excedente'];
+ target.innerHTML=`<div class="rubric-help">Selecione <b>um nível em cada linha</b>, exatamente como na rubrica da avaliação. <b>1 = Fase inicial</b>, <b>2 = Em desenvolvimento</b>, <b>3 = Finalizado</b> e <b>4 = Excedente</b>. Ao selecionar o nível 4, registre na própria célula qual evidência demonstra a excelência.</div>`+arr.map((r,ci)=>{
+   const rows=r.rows.map((row,ri)=>{
+     const selected=getRubricLine(prefix,ci,ri);
+     const excellenceKey='rubricExcellence_'+prefix+'_'+ci+'_'+ri;
+     const excellence=state[excellenceKey]||'';
+     return `<div class="rubric-grid">
+       <div class="rubric-sub"><b>${esc(row[0])}</b></div>
+       ${[1,2,3].map(level=>`<div class="rubric-cell ${selected===level?'selected':''}"><label><input type="radio" name="${prefix}_${ci}_${ri}" value="${level}" ${selected===level?'checked':''} onchange="setRubricLine('${prefix}',${ci},${ri},${level})"><span><b>${level} — ${levels[level-1]}</b><br>${esc(row[level])}</span></label></div>`).join('')}
+       <div class="rubric-cell rubric-excellence ${selected===4?'selected':''}"><label><input type="radio" name="${prefix}_${ci}_${ri}" value="4" ${selected===4?'checked':''} onchange="setRubricLine('${prefix}',${ci},${ri},4)"><span><b>4 — Excedente</b></span></label><textarea placeholder="Se Excedente, descreva a evidência de excelência." oninput="state['${excellenceKey}']=this.value;queueSave()">${esc(excellence)}</textarea></div>
+     </div>`;
+   }).join('');
+   return `<div class="rubric"><div class="rubric-head">${esc(r.key)} <span class="small muted">— ${esc(r.desc)}</span></div><div class="rubric-table"><div class="rubric-grid"><div class="rubric-colhead">Critério</div><div class="rubric-colhead">FASE INICIAL<br>1</div><div class="rubric-colhead">EM DESENVOLVIMENTO<br>2</div><div class="rubric-colhead">FINALIZADO<br>3</div><div class="rubric-colhead">EXCEDENTE<br>4</div></div>${rows}</div></div>`;
  }).join('');
 }
-function getRubric(prefix,i){return Number(state['rubric_'+prefix+'_'+i]||0)}
-function setRubric(prefix,i,v){state['rubric_'+prefix+'_'+i]=v;queueSave();renderRubrics();updateStats();toast('Nível da rubrica registrado.')}
 function renderRubrics(){renderRubricSet('innovationRubric',innovationRubric,'inv');renderRubricSet('designRubric',designRubric,'des')}
+
 function showSubtab(area,name){
  document.querySelectorAll('#'+area+' .subview').forEach(x=>x.style.display='none');
  document.getElementById(area+'-'+name).style.display='block';
@@ -1773,8 +1819,8 @@ function resetTimer(){pauseTimer();timerSeconds=150;updateTimer();document.getEl
 function updateStats(){
  const totalTasks=state.tasks.length, doneTasks=state.tasks.filter(t=>t.status==='Concluída').length;
  const taskPct=totalTasks?Math.round(doneTasks/totalTasks*100):0;
- const invVals=innovationRubric.map((_,i)=>getRubric('inv',i)).filter(Boolean);const invPct=invVals.length?Math.round(invVals.reduce((a,b)=>a+b,0)/(invVals.length*4)*100):0;
- const desVals=designRubric.map((_,i)=>getRubric('des',i)).filter(Boolean);const desPct=desVals.length?Math.round(desVals.reduce((a,b)=>a+b,0)/(desVals.length*4)*100):0;
+ const invChoices=innovationRubric.flatMap((r,ci)=>r.rows.map((_,ri)=>getRubricLine('inv',ci,ri))).filter(Boolean);const invPct=invChoices.length?Math.round(invChoices.reduce((a,b)=>a+b,0)/(invChoices.length*4)*100):0;
+ const desChoices=designRubric.flatMap((r,ci)=>r.rows.map((_,ri)=>getRubricLine('des',ci,ri))).filter(Boolean);const desPct=desChoices.length?Math.round(desChoices.reduce((a,b)=>a+b,0)/(desChoices.length*4)*100):0;
  const missionSelected=state.missions.filter(m=>m.selected).length;const missionTested=state.missions.filter(m=>(Number(m.runs)||0)>0).length;
  const chPct=Math.round((missionSelected/15*.4+missionTested/15*.6)*100);
  const valPct=Math.min(100,Math.round((state.coreEvidence.length/6)*100));
