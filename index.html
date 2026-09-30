@@ -193,6 +193,13 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .draw-card{background:linear-gradient(135deg,#fff9df,#f2faee);border:1px solid #e6dfb0}
 .draw-result{min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;border-radius:13px;background:#fff;border:1px dashed #cfded8;font-weight:850;font-size:18px}
 @media(max-width:760px){.image-editor{grid-template-columns:1fr}.crop-stage{height:300px}}
+<style id="gallery-caption-final-fix">
+.gallery-caption{display:block !important;margin-top:10px;padding:10px 11px;border:1px solid #dce8e5;border-radius:10px;background:#f7fbf7;color:#17313a;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
+.gallery-caption-label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#61727a;margin-bottom:4px}
+.gallery-caption-text{display:block}
+.gallery-caption-empty{color:#7a8a8f;font-style:italic}
+</style>
+
 <style id="rubric-plan-gallery-fix">
 .rubric-table{border:1px solid var(--line);border-radius:14px;overflow:auto;background:#fff}.rubric-level-head{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));background:#eaf2fb;border-bottom:1px solid var(--line);font-weight:900;font-size:11px;text-transform:uppercase}.rubric-level-head>div{padding:11px;border-right:1px solid var(--line)}.rubric-section-title{grid-column:1/-1;padding:11px;background:#edf5f3;border-top:1px solid var(--line);font-size:12px;line-height:1.4}.rubric-row{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));border-top:1px solid var(--line)}.rubric-criterion{padding:11px;font-size:12px;background:#fbfdfc;border-right:1px solid var(--line)}.rubric-cell{padding:10px;border-right:1px solid var(--line);font-size:11px;line-height:1.35;cursor:pointer;display:block}.rubric-cell input{margin-right:6px;accent-color:var(--green)}.rubric-cell.active{background:#eef8ec;box-shadow:inset 0 0 0 2px #5a9e4d}.rubric-excellent{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:11px}.rubric-note{padding:10px 12px;background:#f8fbfa;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;font-size:11px;color:var(--muted)}.gallery-caption{margin-top:8px;padding:8px 9px;border-radius:9px;background:#f5f9f8;color:var(--ink);font-size:12px;line-height:1.4;white-space:pre-wrap}.gallery-info>b{margin-bottom:2px}.gallery-info>small{display:block;margin-top:2px}@media(max-width:900px){.rubric-level-head,.rubric-row{grid-template-columns:150px repeat(4,minmax(135px,1fr));min-width:825px}}
 </style>
@@ -838,6 +845,7 @@ function load(){
     if(raw) Object.assign(state,JSON.parse(raw));
     state.teamLogo ||= ''; state.teamPhoto ||= ''; state.team.about ||= ''; state.roundTests ||= []; state.missionAnalysis ||= [];  state.buildSteps ||= []; state.robotAttachments ||= []; state.errorChecks ||= []; state.coreDiary ||= []; state.gallery ||= []; state.projectPlan ||= []; state.meetings ||= []; state.attendance ||= []; state.uiCollapsed ||= {};
     if(state.uiCollapsed.specific_teamDataCard===undefined) state.uiCollapsed.specific_teamDataCard=true;
+    state.gallery.forEach(r=>{if(r && r.caption===undefined) r.caption=r.description||r.legend||''; if(r && r.title===undefined) r.title=''; if(r && r.date===undefined) r.date=''; if(r && r.photo===undefined) r.photo='';});
     state.members.forEach((m,i)=>{if(!m.id)m.id='m'+(i+1)+'_'+Math.random().toString(36).slice(2,7)});
     state.attendance.forEach(r=>{r.date ||= ''; r.members ||= {};});
   }catch(e){console.warn(e)}
@@ -1349,22 +1357,35 @@ function handleGalleryPhoto(i,input){const f=input.files&&input.files[0];if(!f)r
 function renderGallery(){
  const w=document.getElementById('galleryWrap');if(!w)return;
  if(!state.gallery.length){w.innerHTML='<div class="empty">Registre a primeira foto da temporada: treino, protótipo, visita, apresentação ou celebração.</div>';return}
- w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>`<div class="gallery-item">
-  <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title)}">`:'📷 Sem foto'}</div>
+ w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>{
+   const caption=(r.caption ?? r.description ?? r.legend ?? '').trim();
+   const title=(r.title||'Sem título').trim();
+   return `<div class="gallery-item">
+  <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`:'📷 Sem foto'}</div>
   <div class="gallery-info">
-   <b>${esc(r.title||'Sem título')}</b>
+   <b>${esc(title)}</b>
    ${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}
-   <div class="gallery-caption">${esc(r.caption||'Sem legenda informada.')}</div>
-   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button><button class="btn" onclick="openGalleryEdit(${i})">✏️</button><button class="btn" onclick="previewCollection('gallery',${i},'Foto da galeria',[[\'title\',\'Título\'],[\'date\',\'Data\'],[\'caption\',\'Legenda / contexto\']])">🔍</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
+   <div class="gallery-caption" aria-label="Legenda da foto"><span class="gallery-caption-label">Legenda</span><span class="gallery-caption-text ${caption?'':'gallery-caption-empty'}">${esc(caption||'Nenhuma legenda informada.')}</span></div>
+   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button><button class="btn" onclick="openGalleryEdit(${i})">✏️</button><button class="btn" onclick="openGalleryCaptionViewer(${i})" title="Visualizar legenda">🔍</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
   </div>
- </div>`).join('')}</div>`;
+ </div>`;
+ }).join('')}</div>`;
 }
 function openGalleryEdit(i){
  const r=state.gallery[i]; if(!r)return;
  const title=prompt('Título da foto:',r.title||''); if(title===null)return;
  const date=prompt('Data (AAAA-MM-DD):',r.date||''); if(date===null)return;
- const caption=prompt('Legenda / contexto:',r.caption||''); if(caption===null)return;
- r.title=title;r.date=date;r.caption=caption;queueSave();renderGallery();toast('Informações da foto atualizadas.');
+ const caption=prompt('Legenda / contexto:',r.caption||r.description||r.legend||''); if(caption===null)return;
+ r.title=title;r.date=date;r.caption=caption;delete r.description;delete r.legend;
+ queueSave();renderGallery();toast('Informações da foto atualizadas.');
+}
+function openGalleryCaptionViewer(i){
+ const r=state.gallery[i]; if(!r)return;
+ const caption=(r.caption ?? r.description ?? r.legend ?? '').trim();
+ openInfoViewer('📸 '+(r.title||'Foto da galeria'),[
+   ['Data',r.date?formatPreviewDate(r.date):''],
+   ['Legenda / contexto',caption||'Nenhuma legenda informada.']
+ ]);
 }
 
 let imageEditorState={kind:'',index:null,source:'',img:null,isLogo:false};
