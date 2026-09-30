@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FLL BIOGLOW • Central da Equipe — v9</title>
+<title>Universo RoboStars • Central da Equipe — v34</title>
 <style>
 :root{
   --red:#e5242a; --red2:#b9151a; --green:#4d8d32; --green2:#2f6d27;
@@ -52,6 +52,21 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .round-test{border:1px solid var(--line);border-radius:16px;background:#fff;margin-bottom:12px;overflow:hidden}.round-test-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:13px 15px;background:#f3f8f6;border-bottom:1px solid var(--line)}.round-test-head h4{margin:0}.mission-status-grid{display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;gap:8px}.mission-status{min-width:48px;justify-content:flex-start}.mission-status{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fbfdfc;display:flex;align-items:center;justify-content:flex-start;gap:7px;font-size:12px;min-width:48px}.mission-status input{accent-color:var(--green)}.round-test-body{padding:14px}.round-test.collapsed .round-test-body{display:none}.round-collapse-btn{min-width:40px;height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font-size:18px;cursor:pointer}.round-collapse-btn:hover{background:#eaf3ef}
 .range-row{display:grid;grid-template-columns:1fr 70px;gap:8px;align-items:center}.range-row input{width:100%;accent-color:var(--green)}
 .rubric{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}.rubric-head{padding:11px 13px;background:#edf5f3;font-weight:900}.rubric-body{padding:12px}.level-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.level{border:1px solid var(--line);border-radius:10px;padding:9px;font-size:11px;line-height:1.3}.level strong{display:block;font-size:14px;margin-bottom:3px}.level.active{border-color:#4b943f;background:#eef8ec}
+.rubric-help{padding:10px 12px;background:#f7fbf8;border:1px solid #dce9e3;border-radius:10px;margin-bottom:10px;font-size:12px;color:var(--muted);line-height:1.45}
+.rubric-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rubric-choice{position:relative;display:block;cursor:pointer}
+.rubric-choice input{position:absolute;opacity:0;pointer-events:none}
+.rubric-choice span{display:block;height:100%;border:2px solid var(--line);border-radius:11px;padding:11px;background:#fff;font-size:11px;line-height:1.35}
+.rubric-choice input:checked+span{border-color:#4b943f;background:#eef8ec;box-shadow:0 0 0 2px rgba(75,148,63,.08)}
+.rubric-choice:hover span{background:#f7fbf8}
+.rubric-evidence{margin-top:10px}
+.rubric-evidence textarea{width:100%;min-height:72px;border:1px solid var(--line);background:#fbfdfc;border-radius:11px;padding:10px;color:var(--ink);resize:vertical}
+.rubric-evidence textarea:focus{border-color:#6bb1c5;box-shadow:0 0 0 3px rgba(29,131,168,.1);outline:none}
+.gallery-caption-preview{margin-top:9px;padding:9px 10px;border-radius:10px;background:#f5f9f8;border:1px solid #e1ece8}
+.gallery-caption-preview b{display:block;font-size:12px;margin-bottom:3px}
+.gallery-caption-preview small{display:block;color:var(--muted);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+@media(max-width:900px){.rubric-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.rubric-levels{grid-template-columns:1fr}}
 .core-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.core{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fff}.core .emoji{font-size:24px}.core h4{margin:7px 0 3px}.core p{font-size:12px;color:var(--muted);line-height:1.45;margin:0}
 .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.column{background:#f0f5f4;border-radius:14px;padding:10px;min-height:190px}.column h4{margin:4px 3px 10px;font-size:12px;text-transform:uppercase;color:#557078}.task{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:8px;box-shadow:0 3px 9px rgba(20,50,55,.05)}.task b{font-size:12px}.task small{display:block;color:var(--muted);margin-top:4px}
 .timer{font-size:62px;font-variant-numeric:tabular-nums;font-weight:900;text-align:center;letter-spacing:-2px}.timer-state{text-align:center;color:var(--muted);margin-bottom:12px}
@@ -1342,6 +1357,15 @@ function removeGalleryItem(i){state.gallery.splice(i,1);renderGallery();queueSav
 function removeGalleryPhoto(i){if(!state.gallery[i])return;state.gallery[i].photo='';renderGallery();queueSave();toast('Foto da galeria excluída.')}
 function galleryPhoto(i){document.getElementById('galleryPhoto_'+i).click()}
 function handleGalleryPhoto(i,input){const f=input.files&&input.files[0];if(!f)return;compressImage(f,900,data=>{state.gallery[i].photo=data;renderGallery();queueSave();input.value=''},()=>toast('Não foi possível processar essa imagem. Prefira JPG, PNG ou WEBP.'))}
+function updateGalleryPreview(i){
+ const r=state.gallery[i];
+ const el=document.getElementById('galleryCaptionPreview_'+i);
+ if(!el||!r)return;
+ const title=(r.title||'').trim();
+ const date=r.date?formatDate(r.date):'';
+ const caption=(r.caption||'').trim();
+ el.innerHTML=`${title?`<b>${esc(title)}</b>`:'<b>Legenda da foto</b>'}${date?`<small>📅 ${esc(date)}</small>`:''}${caption?`<small style="margin-top:4px">${esc(caption)}</small>`:'<small>A legenda preenchida aparecerá aqui.</small>'}`;
+}
 function renderGallery(){
  const w=document.getElementById('galleryWrap');if(!w)return;
  if(!state.gallery.length){w.innerHTML='<div class="empty">Registre a primeira foto da temporada: treino, protótipo, visita, apresentação ou celebração.</div>';return}
@@ -1349,14 +1373,17 @@ function renderGallery(){
   <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title)}">`:'📷 Sem foto'}</div>
   <div class="gallery-info">
    <div class="edit-fields">
-    <input value="${esc(r.title)}" placeholder="Título da foto" onchange="state.gallery[${i}].title=this.value;queueSave()">
-    <input type="date" value="${esc(r.date)}" onchange="state.gallery[${i}].date=this.value;queueSave()">
-    <textarea placeholder="Legenda / contexto" onchange="state.gallery[${i}].caption=this.value;queueSave()">${esc(r.caption)}</textarea>
+    <input value="${esc(r.title)}" placeholder="Título da foto" oninput="state.gallery[${i}].title=this.value;queueSave();updateGalleryPreview(${i})">
+    <input type="date" value="${esc(r.date)}" onchange="state.gallery[${i}].date=this.value;queueSave();updateGalleryPreview(${i})">
+    <textarea placeholder="Legenda / contexto" oninput="state.gallery[${i}].caption=this.value;queueSave();updateGalleryPreview(${i})">${esc(r.caption)}</textarea>
    </div>
+   <div class="gallery-caption-preview" id="galleryCaptionPreview_${i}"></div>
    <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">✎ Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️ Excluir foto</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
   </div>
  </div>`).join('')}</div>`;
+ state.gallery.forEach((_,i)=>updateGalleryPreview(i));
 }
+
 
 
 let imageEditorState={kind:'',index:null,source:'',img:null,isLogo:false};
@@ -1716,13 +1743,20 @@ function renderProjectPlan(){
 }
 
 function renderRubricSet(id,arr,prefix){
- document.getElementById(id).innerHTML=arr.map((r,i)=>`<div class="rubric">
- <div class="rubric-head">${r[0]} <span class="small muted">— ${r[1]}</span></div>
- <div class="rubric-body"><div class="level-grid">${r[2].map((x,l)=>`<label class="level ${getRubric(prefix,i)===l+1?'active':''}"><input type="radio" name="${prefix}${i}" value="${l+1}" ${getRubric(prefix,i)===l+1?'checked':''} onchange="setRubric('${prefix}',${i},${l+1})"> <strong>${l+1}</strong>${x}</label>`).join('')}</div></div>
- </div>`).join('');
+ const target=document.getElementById(id);if(!target)return;
+ target.innerHTML=`<div class="rubric-help">Marque o nível que melhor representa o estágio atual da equipe. <b>1 = Fase inicial</b>, <b>2 = Em desenvolvimento</b>, <b>3 = Finalizado</b> e <b>4 = Excedente</b>. Quando marcar o nível 4, registre abaixo qual evidência demonstra a excelência.</div>`+arr.map((r,i)=>{
+  const selected=getRubric(prefix,i);
+  return `<div class="rubric">
+   <div class="rubric-head">${r[0]} <span class="small muted">— ${r[1]}</span></div>
+   <div class="rubric-body">
+    <div class="rubric-levels">${r[2].map((x,l)=>`<label class="rubric-choice"><input type="radio" name="${prefix}${i}" value="${l+1}" ${selected===l+1?'checked':''} onchange="setRubric('${prefix}',${i},${l+1})"><span><strong>${l+1} — ${['Fase inicial','Em desenvolvimento','Finalizado','Excedente'][l]}</strong><br>${x}</span></label>`).join('')}</div>
+    <div class="rubric-evidence"><label class="small" style="font-weight:800;display:block;margin-bottom:5px">Evidência / observação da equipe</label><textarea placeholder="Registre uma evidência, exemplo, teste, feedback ou situação que justifique a escolha deste nível." oninput="state['rubricEvidence_${prefix}_${i}']=this.value;queueSave()">${esc(state['rubricEvidence_'+prefix+'_'+i]||'')}</textarea></div>
+   </div>
+  </div>`;
+ }).join('');
 }
 function getRubric(prefix,i){return Number(state['rubric_'+prefix+'_'+i]||0)}
-function setRubric(prefix,i,v){state['rubric_'+prefix+'_'+i]=v;queueSave();renderRubrics();updateStats()}
+function setRubric(prefix,i,v){state['rubric_'+prefix+'_'+i]=v;queueSave();renderRubrics();updateStats();toast('Nível da rubrica registrado.')}
 function renderRubrics(){renderRubricSet('innovationRubric',innovationRubric,'inv');renderRubricSet('designRubric',designRubric,'des')}
 function showSubtab(area,name){
  document.querySelectorAll('#'+area+' .subview').forEach(x=>x.style.display='none');
