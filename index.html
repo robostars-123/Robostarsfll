@@ -460,7 +460,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
   <div class="hero"><h2>💡 Projeto de Inovação</h2><p>Da pesquisa ao impacto: organize o plano, acompanhe a execução, desenvolva a solução, compartilhe, colete feedback e comunique o que a equipe aprendeu.</p></div>
 
   <div class="section-title"><div><h3>1. Plano de Projeto</h3><p>Comece aqui: execute as quatro fases do plano anexado e registre responsável, prazo, status e evidência.</p></div></div>
-  <div class="card">
+  <div class="card no-auto-collapse">
     <div class="plan-help">📌 O plano de projeto organiza o trabalho em quatro fases: definir o problema e pesquisar; desenvolver a solução; compartilhar e coletar feedback; finalizar o projeto. Cada atividade pode ser acompanhada individualmente.</div>
     <div id="projectPlanWrap"></div>
   </div>
@@ -711,6 +711,18 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
   </div>
 </div>
 
+<div class="modal" id="galleryCaptionModal" aria-hidden="true">
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-head"><h3 id="galleryCaptionModalTitle">📸 Legenda da foto</h3><button class="close" onclick="closeGalleryCaptionModal()">✕</button></div>
+    <div id="galleryCaptionModalContent" style="margin-top:14px"></div>
+    <div id="galleryCaptionModalEdit" style="display:none;margin-top:14px">
+      <div class="field"><label>Título da foto</label><input id="galleryModalTitleInput"></div>
+      <div class="field"><label>Data</label><input id="galleryModalDateInput" type="date"></div>
+      <div class="field"><label>Legenda / contexto</label><textarea id="galleryModalCaptionInput" rows="5" placeholder="Conte o que esta foto registra e por que ela é importante para a trajetória da equipe."></textarea></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn green" onclick="saveGalleryCaptionModal()">✓ Salvar legenda</button><button class="btn" onclick="cancelGalleryCaptionEdit()">Cancelar</button></div>
+    </div>
+  </div>
+</div>
 <div class="modal" id="imageEditorModal">
   <div class="modal-box">
     <div class="modal-head"><h3 id="imageEditorTitle">Editar imagem</h3><button class="close" onclick="closeImageEditor()">✕</button></div>
@@ -1359,13 +1371,26 @@ function removeGalleryPhoto(i){if(!state.gallery[i])return;state.gallery[i].phot
 function galleryPhoto(i){document.getElementById('galleryPhoto_'+i).click()}
 function handleGalleryPhoto(i,input){const f=input.files&&input.files[0];if(!f)return;compressImage(f,900,data=>{state.gallery[i].photo=data;renderGallery();queueSave();input.value=''},()=>toast('Não foi possível processar essa imagem. Prefira JPG, PNG ou WEBP.'))}
 function updateGalleryPreview(i){
- const r=state.gallery[i];
- const el=document.getElementById('galleryCaptionPreview_'+i);
- if(!el||!r)return;
- const title=(r.title||'').trim();
- const date=r.date?formatDate(r.date):'';
- const caption=(r.caption||'').trim();
- el.innerHTML=`${title?`<b>${esc(title)}</b>`:'<b>Legenda da foto</b>'}${date?`<small>📅 ${esc(date)}</small>`:''}${caption?`<small style="margin-top:4px">${esc(caption)}</small>`:'<small>A legenda preenchida aparecerá aqui.</small>'}`;
+ const r=state.gallery[i]; const el=document.getElementById('galleryCaptionPreview_'+i); if(!el||!r)return;
+ const title=(r.title||'').trim(); const date=r.date?formatDate(r.date):''; const caption=(r.caption||'').trim();
+ el.innerHTML=`${title?`<b>${esc(title)}</b>`:'<b>Legenda da foto</b>'}${date?`<small>📅 ${esc(date)}</small>`:''}${caption?`<small style="margin-top:4px">${esc(caption)}</small>`:'<small>Ainda não há legenda preenchida.</small>'}`;
+}
+let galleryCaptionModalIndex=null;
+function openGalleryCaptionModal(i,edit=false){
+ const r=state.gallery[i]; if(!r)return; galleryCaptionModalIndex=i;
+ const content=document.getElementById('galleryCaptionModalContent'), editBox=document.getElementById('galleryCaptionModalEdit');
+ document.getElementById('galleryCaptionModalTitle').textContent=edit?'✏️ Editar legenda da foto':'🔍 Visualizar legenda da foto';
+ content.innerHTML=`<div class="gallery-caption-preview" style="font-size:13px">${r.title?`<b>${esc(r.title)}</b>`:'<b>Legenda da foto</b>'}${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}${r.caption?`<small style="margin-top:6px">${esc(r.caption)}</small>`:'<small>Ainda não há legenda preenchida.</small>'}</div>`;
+ editBox.style.display=edit?'block':'none';
+ if(edit){document.getElementById('galleryModalTitleInput').value=r.title||'';document.getElementById('galleryModalDateInput').value=r.date||'';document.getElementById('galleryModalCaptionInput').value=r.caption||'';}
+ document.getElementById('galleryCaptionModal').classList.add('open');
+}
+function closeGalleryCaptionModal(){galleryCaptionModalIndex=null;document.getElementById('galleryCaptionModal').classList.remove('open')}
+function cancelGalleryCaptionEdit(){if(galleryCaptionModalIndex!==null)openGalleryCaptionModal(galleryCaptionModalIndex,false)}
+function saveGalleryCaptionModal(){
+ const i=galleryCaptionModalIndex; if(i===null||!state.gallery[i])return;
+ state.gallery[i].title=document.getElementById('galleryModalTitleInput').value||''; state.gallery[i].date=document.getElementById('galleryModalDateInput').value||''; state.gallery[i].caption=document.getElementById('galleryModalCaptionInput').value||'';
+ renderGallery(); queueSave(); toast('Legenda da foto atualizada.'); closeGalleryCaptionModal();
 }
 function renderGallery(){
  const w=document.getElementById('galleryWrap');if(!w)return;
@@ -1373,12 +1398,13 @@ function renderGallery(){
  w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>`<div class="gallery-item">
   <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title)}">`:'📷 Sem foto'}</div>
   <div class="gallery-info">
-   <div class="edit-fields">
+   <div class="gallery-caption-preview" id="galleryCaptionPreview_${i}"></div>
+   <div class="photo-actions no-print" style="margin-top:8px"><button class="btn" onclick="openGalleryCaptionModal(${i},false)">🔍 Ver legenda</button><button class="btn" onclick="openGalleryCaptionModal(${i},true)">✏️ Editar legenda</button></div>
+   <details class="gallery-edit-details no-print" style="margin-top:8px"><summary>✏️ Editar informações diretamente</summary><div class="edit-fields" style="margin-top:8px">
     <input value="${esc(r.title)}" placeholder="Título da foto" oninput="state.gallery[${i}].title=this.value;queueSave();updateGalleryPreview(${i})">
     <input type="date" value="${esc(r.date)}" onchange="state.gallery[${i}].date=this.value;queueSave();updateGalleryPreview(${i})">
     <textarea placeholder="Legenda / contexto" oninput="state.gallery[${i}].caption=this.value;queueSave();updateGalleryPreview(${i})">${esc(r.caption)}</textarea>
-   </div>
-   <div class="gallery-caption-preview" id="galleryCaptionPreview_${i}"></div>
+   </div></details>
    <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">✎ Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️ Excluir foto</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
   </div>
  </div>`).join('')}</div>`;
@@ -1788,7 +1814,7 @@ function setRubricLine(prefix,criterion,row,value){
 function renderRubricSet(id,arr,prefix){
  const target=document.getElementById(id);if(!target)return;
  const levels=['Fase inicial','Em desenvolvimento','Finalizado','Excedente'];
- target.innerHTML=`<div class="rubric-help">Selecione <b>um nível em cada linha</b>, exatamente como na rubrica da avaliação. <b>1 = Fase inicial</b>, <b>2 = Em desenvolvimento</b>, <b>3 = Finalizado</b> e <b>4 = Excedente</b>. Ao selecionar o nível 4, registre na própria célula qual evidência demonstra a excelência.</div>`+arr.map((r,ci)=>{
+ target.innerHTML=`<div class="rubric-help"><b>Como preencher:</b> em <b>cada linha</b>, clique na caixa correspondente ao nível que representa a equipe. <b>1 — Fase inicial</b>, <b>2 — Em desenvolvimento</b>, <b>3 — Finalizado</b> ou <b>4 — Excedente</b>. Se escolher 4, registre a evidência de excelência no campo disponível. Os textos abaixo reproduzem os níveis da rubrica fornecida pela equipe.</div>`+arr.map((r,ci)=>{
    const rows=r.rows.map((row,ri)=>{
      const selected=getRubricLine(prefix,ci,ri);
      const excellenceKey='rubricExcellence_'+prefix+'_'+ci+'_'+ri;
