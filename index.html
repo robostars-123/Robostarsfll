@@ -773,8 +773,8 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
       </div>
       <div class="field"><label>Legenda / contexto</label><textarea id="galleryEditorCaption" placeholder="Descreva o que está acontecendo na foto."></textarea></div>
       <div class="gallery-editor-extra-actions" id="galleryEditorExtraActions" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px">
-        <button type="button" class="btn ghost" onclick="clearGalleryCaptionFromEditor()">🗑️ Excluir legenda</button>
-        <button type="button" class="btn ghost" onclick="deleteGalleryRecordFromEditor()">🗑️ Excluir foto e informações</button>
+        <button type="button" class="btn green" onclick="saveGalleryInfoFromEditor()">✓ Salvar alterações</button>
+        <button type="button" class="btn ghost" onclick="clearGalleryInfoFromEditor()">🗑️ Apagar informações</button>
       </div>
     </div>
     <div class="image-editor" style="margin-top:14px">
@@ -786,7 +786,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
         <label>Enquadramento vertical <input id="cropY" type="range" min="-1" max="1" step="0.01" value="0"></label>
         <input id="replaceImageInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden>
         <button class="btn blue" id="imageEditorReplaceBtn" onclick="document.getElementById('replaceImageInput').click()">📷 Adicionar/Trocar imagem</button>
-        <button class="btn green" id="imageEditorApplyBtn" onclick="saveEditedImage()">✓ Aplicar enquadramento</button>
+        <button class="btn green" id="imageEditorApplyBtn" onclick="saveEditedImage()">✓ Salvar enquadramento</button>
         <button class="btn" id="imageEditorDownloadBtn" onclick="downloadEditedImage()">⬇️ Baixar imagem</button>
         <button class="btn ghost" id="imageEditorDeleteBtn" onclick="deleteEditedImage()">🗑️ Excluir imagem</button>
         <button class="btn ghost" onclick="closeImageEditor()">Cancelar</button>
@@ -1600,15 +1600,31 @@ document.getElementById('replaceImageInput')?.addEventListener('change',e=>{
   };
   reader.readAsDataURL(f);e.target.value='';
 });
-function clearGalleryCaptionFromEditor(){
+function saveGalleryInfoFromEditor(){
   const i=imageEditorState.index;
   if(imageEditorState.kind!=='galleryPhoto' || !state.gallery[i])return;
-  document.getElementById('galleryEditorCaption').value='';
-  state.gallery[i].caption='';
+  state.gallery[i].title=document.getElementById('galleryEditorTitle')?.value||'';
+  state.gallery[i].date=document.getElementById('galleryEditorDate')?.value||'';
+  state.gallery[i].caption=document.getElementById('galleryEditorCaption')?.value||'';
   delete state.gallery[i].description; delete state.gallery[i].legend;
   queueSave();
   renderGallery();
-  toast('Legenda excluída.');
+  toast('Alterações da foto salvas.');
+}
+function clearGalleryInfoFromEditor(){
+  const i=imageEditorState.index;
+  if(imageEditorState.kind!=='galleryPhoto' || !state.gallery[i])return;
+  if(!confirm('Apagar título, data e legenda desta foto? A imagem será mantida.'))return;
+  state.gallery[i].title='';
+  state.gallery[i].date='';
+  state.gallery[i].caption='';
+  delete state.gallery[i].description; delete state.gallery[i].legend;
+  document.getElementById('galleryEditorTitle').value='';
+  document.getElementById('galleryEditorDate').value='';
+  document.getElementById('galleryEditorCaption').value='';
+  queueSave();
+  renderGallery();
+  toast('Informações apagadas. A foto foi mantida.');
 }
 function deleteGalleryRecordFromEditor(){
   const i=imageEditorState.index;
