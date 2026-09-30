@@ -193,6 +193,10 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .draw-card{background:linear-gradient(135deg,#fff9df,#f2faee);border:1px solid #e6dfb0}
 .draw-result{min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;border-radius:13px;background:#fff;border:1px dashed #cfded8;font-weight:850;font-size:18px}
 @media(max-width:760px){.image-editor{grid-template-columns:1fr}.crop-stage{height:300px}}
+<style id="rubric-plan-gallery-fix">
+.rubric-table{border:1px solid var(--line);border-radius:14px;overflow:auto;background:#fff}.rubric-level-head{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));background:#eaf2fb;border-bottom:1px solid var(--line);font-weight:900;font-size:11px;text-transform:uppercase}.rubric-level-head>div{padding:11px;border-right:1px solid var(--line)}.rubric-section-title{grid-column:1/-1;padding:11px;background:#edf5f3;border-top:1px solid var(--line);font-size:12px;line-height:1.4}.rubric-row{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));border-top:1px solid var(--line)}.rubric-criterion{padding:11px;font-size:12px;background:#fbfdfc;border-right:1px solid var(--line)}.rubric-cell{padding:10px;border-right:1px solid var(--line);font-size:11px;line-height:1.35;cursor:pointer;display:block}.rubric-cell input{margin-right:6px;accent-color:var(--green)}.rubric-cell.active{background:#eef8ec;box-shadow:inset 0 0 0 2px #5a9e4d}.rubric-excellent{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:11px}.rubric-note{padding:10px 12px;background:#f8fbfa;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;font-size:11px;color:var(--muted)}.gallery-caption{margin-top:8px;padding:8px 9px;border-radius:9px;background:#f5f9f8;color:var(--ink);font-size:12px;line-height:1.4;white-space:pre-wrap}.gallery-info>b{margin-bottom:2px}.gallery-info>small{display:block;margin-top:2px}@media(max-width:900px){.rubric-level-head,.rubric-row{grid-template-columns:150px repeat(4,minmax(135px,1fr));min-width:825px}}
+</style>
+
 </style>
 
 <style id="robostars-universe-theme">
@@ -1180,7 +1184,7 @@ function previewRoundTest(i){
 function addMatch(){state.matches.push({date:'',score:'',missions:'',notes:''});renderMatches();queueSave()}
 function removeMatch(i){state.matches.splice(i,1);renderMatches();queueSave()}
 function renderMatches(){
- const w=document.getElementById('matchesWrap');if(!state.matches.length){w.innerHTML='<div class="empty">Nenhuma partida de treino registrada.</div>';return}
+ const w=document.getElementById('matchesWrap');if(!w)return;if(!state.matches.length){w.innerHTML='<div class="empty">Nenhuma partida de treino registrada.</div>';return}
  const best=Math.max(...state.matches.map(m=>Number(m.score)||0));
  w.innerHTML=`<table><thead><tr><th>Data</th><th>Pontuação</th><th>Missões realizadas</th><th>Observações</th><th></th></tr></thead><tbody>${state.matches.map((m,i)=>`<tr>
  <td><input type="date" value="${esc(m.date)}" onchange="state.matches[${i}].date=this.value;queueSave()"></td>
@@ -1348,16 +1352,20 @@ function renderGallery(){
  w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>`<div class="gallery-item">
   <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title)}">`:'📷 Sem foto'}</div>
   <div class="gallery-info">
-   <div class="edit-fields">
-    <input value="${esc(r.title)}" placeholder="Título da foto" onchange="state.gallery[${i}].title=this.value;queueSave()">
-    <input type="date" value="${esc(r.date)}" onchange="state.gallery[${i}].date=this.value;queueSave()">
-    <textarea placeholder="Legenda / contexto" onchange="state.gallery[${i}].caption=this.value;queueSave()">${esc(r.caption)}</textarea>
-   </div>
-   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">✎ Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️ Excluir foto</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
+   <b>${esc(r.title||'Sem título')}</b>
+   ${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}
+   <div class="gallery-caption">${esc(r.caption||'Sem legenda informada.')}</div>
+   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button><button class="btn" onclick="openGalleryEdit(${i})">✏️</button><button class="btn" onclick="previewCollection('gallery',${i},'Foto da galeria',[[\'title\',\'Título\'],[\'date\',\'Data\'],[\'caption\',\'Legenda / contexto\']])">🔍</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
   </div>
  </div>`).join('')}</div>`;
 }
-
+function openGalleryEdit(i){
+ const r=state.gallery[i]; if(!r)return;
+ const title=prompt('Título da foto:',r.title||''); if(title===null)return;
+ const date=prompt('Data (AAAA-MM-DD):',r.date||''); if(date===null)return;
+ const caption=prompt('Legenda / contexto:',r.caption||''); if(caption===null)return;
+ r.title=title;r.date=date;r.caption=caption;queueSave();renderGallery();toast('Informações da foto atualizadas.');
+}
 
 let imageEditorState={kind:'',index:null,source:'',img:null,isLogo:false};
 function openHomePhotoEditor(){
@@ -1676,18 +1684,48 @@ function renderTasksKanban(){
 }
 
 const innovationRubric=[
- ['IDENTIFICAÇÃO','Problema claramente definido e bem pesquisado.',['Definição pouco clara do problema / pesquisa mínima','Definição parcialmente clara / pesquisa parcial de uma ou mais fontes','Definição clara / pesquisa detalhada de variedade de fontes','Que evidência demonstra excelência?']],
- ['DESIGN','Plano de projeto e desenvolvimento das ideias com participação da equipe.',['Plano mínimo / participação mínima','Plano parcial / participação parcial','Plano claro / participação clara de todos','Que evidência demonstra excelência?']],
- ['CRIAÇÃO','Solução inovadora representada por protótipo/desenho.',['Explicação mínima / protótipo pouco claro','Explicação simples / protótipo simples','Explicação detalhada / protótipo detalhado','Que evidência demonstra excelência?']],
- ['ITERAÇÃO','Compartilhamento, feedback e melhorias na solução.',['Compartilhamento mínimo / melhorias mínimas','Compartilhamento com pelo menos um grupo / melhorias parciais','Compartilhamento com vários grupos / melhorias claras','Que evidência demonstra excelência?']],
- ['COMUNICAÇÃO','Explicação da solução, impacto potencial e celebração do progresso.',['Explicação pouco clara / entusiasmo mínimo','Explicação parcialmente clara / entusiasmo parcial','Explicação clara / orgulho ou entusiasmo claro','Que evidência demonstra excelência?']]
+ {section:'IDENTIFICAÇÃO',intro:'A equipe tinha um problema claramente definido e bem pesquisado.',rows:[
+  ['Definição do problema',['Definição pouco clara do problema','Definição parcialmente clara do problema','Definição clara do problema','']],
+  ['Pesquisa',['Evidências mínimas de pesquisa','Evidências parciais de pesquisa de uma ou mais fontes','Pesquisa clara e detalhada de uma variedade de fontes','']]
+ ]},
+ {section:'DESIGN',intro:'A equipe trabalhou em conjunto na criação de um plano de projeto e no desenvolvimento de suas ideias.',rows:[
+  ['Plano de projeto',['Evidências mínimas de um plano de projeto eficaz','Evidências parciais de um plano de projeto eficaz','Evidências claras de um plano de projeto eficaz','']],
+  ['Participação da equipe',['Evidências mínimas de que o processo de desenvolvimento envolveu todos os membros da equipe','Evidências parciais de que o processo de desenvolvimento envolveu todos os membros da equipe','Evidências claras de que o processo de desenvolvimento envolveu todos os membros da equipe','']]
+ ]},
+ {section:'CRIAÇÃO',intro:'A equipe desenvolveu uma ideia original ou baseou-se em uma ideia existente com um protótipo/desenho para representar sua solução.',rows:[
+  ['Inovação na solução',['Explicação mínima com relação à inovação na solução','Explicação simples com relação à inovação na solução','Explicação detalhada com relação à inovação na solução','']],
+  ['Protótipo / desenho',['Protótipo/desenho pouco claro para representar a solução','Protótipo/desenho simples para representar a solução','Protótipo/desenho detalhado para representar a solução','']]
+ ]},
+ {section:'ITERAÇÃO',intro:'A equipe compartilhou suas ideias, coletou feedback e incluiu melhorias em sua solução.',rows:[
+  ['Compartilhamento',['Compartilhamento mínimo da solução com outras pessoas','Solução compartilhada com pelo menos uma pessoa/grupo','Solução compartilhada com várias pessoas/grupos','']],
+  ['Melhorias com base em feedback',['Evidências mínimas de melhorias com base em feedbacks','Evidências parciais de melhorias com base em feedbacks','Evidências claras de melhorias com base em feedbacks','']]
+ ]},
+ {section:'COMUNICAÇÃO',intro:'Os alunos fizeram uma apresentação eficaz de sua solução, seu impacto sobre outras pessoas e comemoraram o progresso da equipe.',rows:[
+  ['Solução e impacto',['Explicação pouco clara da solução e seu impacto potencial sobre outras pessoas','Explicação parcialmente clara da solução e seu impacto potencial sobre outras pessoas','Explicação clara da solução e seu impacto potencial sobre outras pessoas','']],
+  ['Orgulho e entusiasmo',['A apresentação demonstra orgulho ou entusiasmo mínimo com o trabalho da equipe','A apresentação demonstra orgulho ou entusiasmo parcial com o trabalho da equipe','A apresentação claramente demonstra orgulho ou entusiasmo com o trabalho da equipe','']]
+ ]}
 ];
 const designRubric=[
- ['IDENTIFICAÇÃO','Estratégia de missão, recursos de construção/codificação e orientação quando necessário.',['Evidências mínimas de estratégia / uso mínimo de recursos','Evidências parciais / uso de alguns recursos','Evidências claras / uso claro de recursos para apoiar a estratégia','Que evidência demonstra excelência?']],
- ['DESIGN','Colaboração e desenvolvimento de habilidades de construção e codificação.',['Participação e habilidades mínimas','Participação e habilidades parciais','Todos contribuem e demonstram habilidades claras','Que evidência demonstra excelência?']],
- ['CRIAÇÃO','Designs originais ou melhorias coerentes com a estratégia.',['Explicação pouco clara de acessórios e código/sensores','Explicação simples','Explicação clara de acessórios inovadores e uso inovador de código/sensores','Que evidência demonstra excelência?']],
- ['ITERAÇÃO','Testes repetidos e melhorias baseadas nos resultados.',['Evidências mínimas de testes/melhorias','Evidências parciais','Evidências claras de testes repetidos e melhorias','Que evidência demonstra excelência?']],
- ['COMUNICAÇÃO','Explicação do processo, lições aprendidas e celebração do progresso.',['Explicação pouco clara / orgulho mínimo','Explicação simples / orgulho parcial','Explicação detalhada / orgulho ou entusiasmo claro','Que evidência demonstra excelência?']]
+ {section:'IDENTIFICAÇÃO',intro:'A equipe definiu quais missões iria tentar realizar, explorou recursos de construção e codificação e buscou orientação conforme necessário.',rows:[
+  ['Estratégia de missão',['Evidências mínimas de estratégia de missão','Evidências parciais de estratégia de missão','Evidências claras de estratégia de missão','']],
+  ['Construção e codificação',['Uso mínimo de recursos de construção ou codificação','Uso de alguns recursos de construção ou codificação','Uso claro de recursos de construção ou codificação para apoiar na estratégia de missão','']]
+ ]},
+ {section:'DESIGN',intro:'Os membros da equipe trabalharam colaborativamente em seus designs e desenvolveram as habilidades de construção e codificação necessárias.',rows:[
+  ['Contribuição de ideias',['Evidências mínimas de que todos os membros da equipe contribuíram com ideias','Evidências parciais de que todos os membros da equipe contribuíram com ideias','Evidências claras de que todos os membros da equipe contribuíram com ideias','']],
+  ['Habilidades de construção e codificação',['Evidências mínimas de habilidades de construção e codificação em todos os membros da equipe','Evidências parciais de habilidades de construção e codificação em todos os membros da equipe','Evidências claras de habilidades de construção e codificação em todos os membros da equipe','']]
+ ]},
+ {section:'CRIAÇÃO',intro:'A equipe desenvolveu designs originais ou melhorou os existentes de acordo com sua estratégia de missão.',rows:[
+  ['Acessórios e propósito',['Explicação pouco clara dos acessórios e de seu propósito','Explicação simples dos acessórios e de seu propósito','Explicação clara de acessórios inovadores e de seu propósito','']],
+  ['Códigos e sensores',['Explicação pouco clara do uso de códigos e/ou sensores','Explicação simples do uso de códigos e/ou sensores','Explicação clara do uso inovador de códigos e/ou sensores','']]
+ ]},
+ {section:'ITERAÇÃO',intro:'A equipe testou seus robôs e códigos repetidamente para identificar áreas de melhoria e incorporou as descobertas em suas soluções.',rows:[
+  ['Testes do robô e do código',['Evidências mínimas de testes do robô e do código','Evidências parciais de testes do robô e do código','Evidências claras de testes repetidos do robô e do código','']],
+  ['Melhorias com base em testes',['Evidências mínimas de melhorias com base em testes','Evidências parciais de melhorias com base em testes','Evidências claras de melhorias com base em testes','']]
+ ]},
+ {section:'COMUNICAÇÃO',intro:'A equipe explicou de forma eficaz o que aprendeu com o processo de design do robô e comemorou seu progresso.',rows:[
+  ['Processo e lições aprendidas',['Explicação pouco clara do processo e lições aprendidas','Explicação simples do processo e lições aprendidas','Explicação detalhada do processo e lições aprendidas','']],
+  ['Orgulho e entusiasmo',['A equipe demonstra orgulho ou entusiasmo mínimo pelo seu trabalho','A equipe demonstra orgulho ou entusiasmo parcial pelo seu trabalho','A equipe claramente demonstra orgulho ou entusiasmo pelo seu trabalho','']]
+ ]}
 ];
 function initProjectPlan(){
  if(!state.projectPlan.length){
@@ -1716,13 +1754,24 @@ function renderProjectPlan(){
 }
 
 function renderRubricSet(id,arr,prefix){
- document.getElementById(id).innerHTML=arr.map((r,i)=>`<div class="rubric">
- <div class="rubric-head">${r[0]} <span class="small muted">— ${r[1]}</span></div>
- <div class="rubric-body"><div class="level-grid">${r[2].map((x,l)=>`<label class="level ${getRubric(prefix,i)===l+1?'active':''}"><input type="radio" name="${prefix}${i}" value="${l+1}" ${getRubric(prefix,i)===l+1?'checked':''} onchange="setRubric('${prefix}',${i},${l+1})"> <strong>${l+1}</strong>${x}</label>`).join('')}</div></div>
- </div>`).join('');
+ const el=document.getElementById(id); if(!el)return;
+ let rowCounter=0;
+ el.innerHTML=`<div class="rubric-table"><div class="rubric-level-head"><div>CRITÉRIO / EVIDÊNCIA</div><div>1 — FASE INICIAL</div><div>2 — EM DESENVOLVIMENTO</div><div>3 — FINALIZADO</div><div>4 — EXCEDENTE</div></div>`+
+ arr.map((r,si)=>{
+   const section=`<div class="rubric-section-title"><strong>${esc(r.section)}</strong> — ${esc(r.intro)}</div>`;
+   const rows=r.rows.map((row,ri)=>{
+     const key=si+'_'+ri; const selected=getRubric(prefix,key);
+     const cells=row[1].map((txt,l)=>`<label class="rubric-cell ${selected===l+1?'active':''}"><input type="radio" name="${prefix}_${key}" value="${l+1}" ${selected===l+1?'checked':''} onchange="setRubric('${prefix}','${key}',${l+1})">${l<3?esc(txt):`<textarea class="rubric-excellent" placeholder="Como a equipe demonstrou excelência?" onchange="setRubricNote('${prefix}','${key}',this.value)">${esc(getRubricNote(prefix,key))}</textarea>`}</label>`).join('');
+     rowCounter++; return `<div class="rubric-row"><div class="rubric-criterion"><b>${esc(row[0])}</b></div>${cells}</div>`;
+   }).join('');
+   return section+rows;
+ }).join('')+`</div><div class="rubric-note">Selecione um nível em cada linha. No <b>Excedente (4)</b>, registre a evidência de excelência da equipe.</div>`;
 }
-function getRubric(prefix,i){return Number(state['rubric_'+prefix+'_'+i]||0)}
-function setRubric(prefix,i,v){state['rubric_'+prefix+'_'+i]=v;queueSave();renderRubrics();updateStats()}
+function rubricKey(prefix,key){return 'rubric_'+prefix+'_'+key}
+function getRubric(prefix,key){return Number(state[rubricKey(prefix,key)]||0)}
+function setRubric(prefix,key,v){state[rubricKey(prefix,key)]=v;queueSave();renderRubrics();updateStats()}
+function getRubricNote(prefix,key){return String(state[rubricKey(prefix,key)+'_note']||'')}
+function setRubricNote(prefix,key,v){state[rubricKey(prefix,key)+'_note']=v;queueSave()}
 function renderRubrics(){renderRubricSet('innovationRubric',innovationRubric,'inv');renderRubricSet('designRubric',designRubric,'des')}
 function showSubtab(area,name){
  document.querySelectorAll('#'+area+' .subview').forEach(x=>x.style.display='none');
@@ -1749,7 +1798,7 @@ function updateStats(){
  document.getElementById('pDesign').style.width=desPct+'%';document.getElementById('tDesign').textContent=desPct+'% de autoavaliação';
  document.getElementById('pChallenge').style.width=chPct+'%';document.getElementById('tChallenge').textContent=chPct+'% de planejamento/treino';
  document.getElementById('pValues').style.width=valPct+'%';document.getElementById('tValues').textContent=valPct+'% de cobertura de evidências';
- document.getElementById('stats').innerHTML=[
+ const statsEl=document.getElementById('stats'); if(statsEl) statsEl.innerHTML=[
   ['📌',totalTasks,`tarefas (${doneTasks} concluídas)`],
   ['💡',invPct+'%', 'Projeto de Inovação'],
   ['🤖',desPct+'%', 'Design do Robô'],
