@@ -209,6 +209,8 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .draw-card{background:linear-gradient(135deg,#fff9df,#f2faee);border:1px solid #e6dfb0}
 .draw-result{min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;border-radius:13px;background:#fff;border:1px dashed #cfded8;font-weight:850;font-size:18px}
 @media(max-width:760px){.image-editor{grid-template-columns:1fr}.crop-stage{height:300px}}
+
+.rubric-host{margin-bottom:14px}.rubric-host:empty{min-height:80px}.plan-kantt-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 13px;margin-bottom:10px;background:#f4f8f6;border:1px solid var(--line);border-radius:10px}.plan-kantt-head span{font-size:12px;color:var(--muted)}
 </style>
 
 <style id="robostars-universe-theme">
@@ -461,6 +463,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 
   <div class="section-title"><div><h3>1. Plano de Projeto</h3><p>Comece aqui: execute as quatro fases do plano anexado e registre responsável, prazo, status e evidência.</p></div></div>
   <div class="card no-auto-collapse">
+    <div class="plan-kantt-head"><b>Plano de Projeto — acompanhamento da equipe</b><span>Marque, acompanhe e registre cada atividade do KANTT.</span></div>
     <div class="plan-help">📌 O plano de projeto organiza o trabalho em quatro fases: definir o problema e pesquisar; desenvolver a solução; compartilhar e coletar feedback; finalizar o projeto. Cada atividade pode ser acompanhada individualmente.</div>
     <div id="projectPlanWrap"></div>
   </div>
@@ -509,7 +512,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
   </div>
 
   <div class="section-title"><div><h3>3. Rubrica do Projeto de Inovação</h3><p>Preencha cada linha da rubrica, selecionando o nível que melhor representa a equipe e registrando evidências quando necessário.</p></div></div>
-  <div id="innovationRubric"></div>
+  <div class="card rubric-host"><div id="innovationRubric"></div></div>
 </section>
 
 <!-- DESIGN -->
@@ -535,7 +538,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
   </div>
 
   <div class="section-title"><div><h3>4. Rubrica do Design do Robô</h3><p>Preencha cada linha da rubrica de acordo com o processo de Design do Robô e registre evidências quando necessário.</p></div></div>
-  <div id="designRubric"></div>
+  <div class="card rubric-host"><div id="designRubric"></div></div>
 </section>
 
 <!-- CHALLENGE -->
@@ -719,7 +722,7 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
       <div class="field"><label>Título da foto</label><input id="galleryModalTitleInput"></div>
       <div class="field"><label>Data</label><input id="galleryModalDateInput" type="date"></div>
       <div class="field"><label>Legenda / contexto</label><textarea id="galleryModalCaptionInput" rows="5" placeholder="Conte o que esta foto registra e por que ela é importante para a trajetória da equipe."></textarea></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn green" onclick="saveGalleryCaptionModal()">✓ Salvar legenda</button><button class="btn" onclick="cancelGalleryCaptionEdit()">Cancelar</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn green" onclick="saveGalleryCaptionModal()">✓ Salvar informações</button><button class="btn" onclick="cancelGalleryCaptionEdit()">Cancelar</button></div>
     </div>
   </div>
 </div>
@@ -750,7 +753,8 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY='fll-bioglow-central-v2';
+const KEY='fll-bioglow-central-v3';
+const LEGACY_KEY='fll-bioglow-central-v2';
 const state={
   team:{teamName:'',teamNumber:'',coach1:'',coach2:'',teamGoal:'',about:''},
   members:[],
@@ -831,7 +835,7 @@ const eventItems=[
  'Todos os integrantes sabem explicar sua contribuição','Equipe pronta para demonstrar Gracious Professionalism e Coopertition'
 ];
 
-function storageGet(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function storageGet(){try{return localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)}catch(e){return null}}
 function storageSet(value){try{localStorage.setItem(KEY,value);return true}catch(e){return false}}
 function compressDataUrl(data,max=700,quality=.62){
  return new Promise(resolve=>{
@@ -860,11 +864,18 @@ function load(){
   try{
     const raw=storageGet();
     if(raw) Object.assign(state,JSON.parse(raw));
-    state.teamLogo ||= ''; state.teamPhoto ||= ''; state.team.about ||= ''; state.roundTests ||= []; state.missionAnalysis ||= [];  state.buildSteps ||= []; state.robotAttachments ||= []; state.errorChecks ||= []; state.coreDiary ||= []; state.gallery ||= []; state.projectPlan ||= []; state.meetings ||= []; state.attendance ||= []; state.uiCollapsed ||= {};
+    state.team ||= {};
+    state.teamLogo ||= ''; state.teamPhoto ||= ''; state.team.about ||= '';
+    ['members','research','feedback','robotTests','missions','matches','roundTests','missionAnalysis','coreEvidence','rehearsals','questions','evidence','tasks','meetings','attendance','buildSteps','robotAttachments','errorChecks','coreDiary','gallery','projectPlan'].forEach(k=>{if(!Array.isArray(state[k]))state[k]=[]});
+    state.sessions ||= Array.from({length:12},()=>({done:false,note:''}));
+    state.checklist ||= {};
+    state.uiCollapsed ||= {};
     if(state.uiCollapsed.specific_teamDataCard===undefined) state.uiCollapsed.specific_teamDataCard=true;
     state.members.forEach((m,i)=>{if(!m.id)m.id='m'+(i+1)+'_'+Math.random().toString(36).slice(2,7)});
     state.attendance.forEach(r=>{r.date ||= ''; r.members ||= {};});
   }catch(e){console.warn(e)}
+  initProjectPlan();
+  try{storageSet(JSON.stringify(state))}catch(e){}
   bindInputs(); renderAll();
 }
 function saveData(){
@@ -1379,7 +1390,7 @@ let galleryCaptionModalIndex=null;
 function openGalleryCaptionModal(i,edit=false){
  const r=state.gallery[i]; if(!r)return; galleryCaptionModalIndex=i;
  const content=document.getElementById('galleryCaptionModalContent'), editBox=document.getElementById('galleryCaptionModalEdit');
- document.getElementById('galleryCaptionModalTitle').textContent=edit?'✏️ Editar legenda da foto':'🔍 Visualizar legenda da foto';
+ document.getElementById('galleryCaptionModalTitle').textContent=edit?'✏️ Editar informações da foto':'🔍 Visualizar informações da foto';
  content.innerHTML=`<div class="gallery-caption-preview" style="font-size:13px">${r.title?`<b>${esc(r.title)}</b>`:'<b>Legenda da foto</b>'}${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}${r.caption?`<small style="margin-top:6px">${esc(r.caption)}</small>`:'<small>Ainda não há legenda preenchida.</small>'}</div>`;
  editBox.style.display=edit?'block':'none';
  if(edit){document.getElementById('galleryModalTitleInput').value=r.title||'';document.getElementById('galleryModalDateInput').value=r.date||'';document.getElementById('galleryModalCaptionInput').value=r.caption||'';}
@@ -1396,19 +1407,15 @@ function renderGallery(){
  const w=document.getElementById('galleryWrap');if(!w)return;
  if(!state.gallery.length){w.innerHTML='<div class="empty">Registre a primeira foto da temporada: treino, protótipo, visita, apresentação ou celebração.</div>';return}
  w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>`<div class="gallery-item">
-  <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title)}">`:'📷 Sem foto'}</div>
+  <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(r.title||'Foto da equipe')}">`:'📷 Sem foto'}</div>
   <div class="gallery-info">
-   <div class="gallery-caption-preview" id="galleryCaptionPreview_${i}"></div>
-   <div class="photo-actions no-print" style="margin-top:8px"><button class="btn" onclick="openGalleryCaptionModal(${i},false)">🔍 Ver legenda</button><button class="btn" onclick="openGalleryCaptionModal(${i},true)">✏️ Editar legenda</button></div>
-   <details class="gallery-edit-details no-print" style="margin-top:8px"><summary>✏️ Editar informações diretamente</summary><div class="edit-fields" style="margin-top:8px">
-    <input value="${esc(r.title)}" placeholder="Título da foto" oninput="state.gallery[${i}].title=this.value;queueSave();updateGalleryPreview(${i})">
-    <input type="date" value="${esc(r.date)}" onchange="state.gallery[${i}].date=this.value;queueSave();updateGalleryPreview(${i})">
-    <textarea placeholder="Legenda / contexto" oninput="state.gallery[${i}].caption=this.value;queueSave();updateGalleryPreview(${i})">${esc(r.caption)}</textarea>
-   </div></details>
-   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">✎ Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️ Excluir foto</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
+   <div class="photo-actions no-print" style="display:flex;gap:7px;flex-wrap:wrap">
+    <button class="btn" onclick="openGalleryCaptionModal(${i},false)" title="Visualizar título, data e legenda da foto">🔍 Ver legenda</button>
+    <button class="btn" onclick="openGalleryCaptionModal(${i},true)" title="Editar título, data e legenda da foto">✏️ Editar informações</button>
+   </div>
+   <div class="photo-actions no-print" style="margin-top:8px"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">✎ Ajustar foto</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️ Excluir foto</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
   </div>
  </div>`).join('')}</div>`;
- state.gallery.forEach((_,i)=>updateGalleryPreview(i));
 }
 
 
@@ -1928,8 +1935,10 @@ function toggleCardCollapse(btn){
 }
 function renderAllDelayed(){renderAll();bindInputs()}
 load();
-optimizeStoredImages();
 initProjectPlan();
+renderProjectPlan();
+renderRubrics();
+optimizeStoredImages();
 renderTeamLogo();
 </script>
 </body>
