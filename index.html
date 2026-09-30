@@ -193,12 +193,12 @@ table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;borde
 .draw-card{background:linear-gradient(135deg,#fff9df,#f2faee);border:1px solid #e6dfb0}
 .draw-result{min-height:62px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;border-radius:13px;background:#fff;border:1px dashed #cfded8;font-weight:850;font-size:18px}
 @media(max-width:760px){.image-editor{grid-template-columns:1fr}.crop-stage{height:300px}}
-<style id="gallery-caption-final-fix">
+
 .gallery-caption{display:block !important;margin-top:10px;padding:10px 11px;border:1px solid #dce8e5;border-radius:10px;background:#f7fbf7;color:#17313a;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
 .gallery-caption-label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#61727a;margin-bottom:4px}
 .gallery-caption-text{display:block}
 .gallery-caption-empty{color:#7a8a8f;font-style:italic}
-</style>
+
 
 <style id="rubric-plan-gallery-fix">
 .rubric-table{border:1px solid var(--line);border-radius:14px;overflow:auto;background:#fff}.rubric-level-head{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));background:#eaf2fb;border-bottom:1px solid var(--line);font-weight:900;font-size:11px;text-transform:uppercase}.rubric-level-head>div{padding:11px;border-right:1px solid var(--line)}.rubric-section-title{grid-column:1/-1;padding:11px;background:#edf5f3;border-top:1px solid var(--line);font-size:12px;line-height:1.4}.rubric-row{display:grid;grid-template-columns:minmax(190px,1.25fr) repeat(4,minmax(150px,1fr));border-top:1px solid var(--line)}.rubric-criterion{padding:11px;font-size:12px;background:#fbfdfc;border-right:1px solid var(--line)}.rubric-cell{padding:10px;border-right:1px solid var(--line);font-size:11px;line-height:1.35;cursor:pointer;display:block}.rubric-cell input{margin-right:6px;accent-color:var(--green)}.rubric-cell.active{background:#eef8ec;box-shadow:inset 0 0 0 2px #5a9e4d}.rubric-excellent{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:11px}.rubric-note{padding:10px 12px;background:#f8fbfa;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;font-size:11px;color:var(--muted)}.gallery-caption{margin-top:8px;padding:8px 9px;border-radius:9px;background:#f5f9f8;color:var(--ink);font-size:12px;line-height:1.4;white-space:pre-wrap}.gallery-info>b{margin-bottom:2px}.gallery-info>small{display:block;margin-top:2px}@media(max-width:900px){.rubric-level-head,.rubric-row{grid-template-columns:150px repeat(4,minmax(135px,1fr));min-width:825px}}
@@ -326,6 +326,16 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 @media(max-width:650px){.about-team-header{grid-template-columns:1fr}.attachment-summary{grid-template-columns:1fr 60px auto}.attachment-summary-photo,.attachment-summary-photo-empty{width:60px;height:46px}}
 </style>
 
+
+<style id="gallery-photo-overlay-fix">
+.gallery-image{position:relative;overflow:hidden}
+.gallery-photo-overlay{position:absolute;bottom:8px;width:34px;height:34px;border:0;border-radius:50%;display:grid;place-items:center;background:rgba(18,54,61,.88);color:#fff;cursor:pointer;font-size:15px;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.gallery-photo-overlay:hover{background:rgba(18,54,61,.98)}
+.gallery-photo-zoom{right:50px}
+.gallery-photo-edit{right:8px}
+.gallery-image::after{content:none}
+.gallery-details.open{display:block!important}
+</style>
 
 <style id="gallery-v40-fix">
 .gallery-item{overflow:hidden}
@@ -1376,7 +1386,9 @@ function renderGallery(){
    const title=(r.title||'Sem título').trim();
    const detailsId=`galleryDetails_${i}`;
    return `<div class="gallery-item">
-  <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`:'📷 Sem foto'}</div>
+  <div class="gallery-image image-editable" title="Foto da galeria">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`: '📷 Sem foto'}
+   ${r.photo?`<button type="button" class="gallery-photo-overlay gallery-photo-zoom" onclick="event.stopPropagation();toggleGalleryDetails(${i})" title="Visualizar legenda e informações" aria-label="Visualizar legenda e informações">🔍</button><button type="button" class="gallery-photo-overlay gallery-photo-edit" onclick="event.stopPropagation();openGalleryPhotoEditor(${i})" title="Editar foto" aria-label="Editar foto">✎</button>`:''}
+  </div>
   <div class="gallery-actions no-print">
    <input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)">
    <button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>
