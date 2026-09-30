@@ -326,6 +326,20 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 @media(max-width:650px){.about-team-header{grid-template-columns:1fr}.attachment-summary{grid-template-columns:1fr 60px auto}.attachment-summary-photo,.attachment-summary-photo-empty{width:60px;height:46px}}
 </style>
 
+
+<style id="gallery-v40-fix">
+.gallery-item{overflow:hidden}
+.gallery-actions{display:flex;flex-wrap:wrap;gap:7px;padding:10px;border-top:1px solid var(--line);background:#fff}
+.gallery-details{display:none;border-top:1px solid var(--line);background:#f8fbfa}
+.gallery-details.open{display:block}
+.gallery-details .gallery-info{padding:12px 13px 14px}
+.gallery-details .gallery-info b{font-size:15px;margin-bottom:5px}
+.gallery-details .gallery-info small{display:block;margin-bottom:8px;color:var(--muted)}
+.gallery-caption{display:block !important;margin-top:8px;padding:10px 11px;border:1px solid #dce8e5;border-radius:10px;background:#fff;color:#17313a;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:42px}
+.gallery-caption-label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#61727a;margin-bottom:4px}
+.gallery-caption-text{display:block}
+.gallery-caption-empty{color:#7a8a8f;font-style:italic}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1360,16 +1374,31 @@ function renderGallery(){
  w.innerHTML=`<div class="gallery-grid">${state.gallery.map((r,i)=>{
    const caption=(r.caption ?? r.description ?? r.legend ?? '').trim();
    const title=(r.title||'Sem título').trim();
+   const detailsId=`galleryDetails_${i}`;
    return `<div class="gallery-item">
   <div class="gallery-image image-editable" onclick="openGalleryPhotoEditor(${i})" title="Clique para trocar ou ajustar a foto">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`:'📷 Sem foto'}</div>
-  <div class="gallery-info">
-   <b>${esc(title)}</b>
-   ${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}
-   <div class="gallery-caption" aria-label="Legenda da foto"><span class="gallery-caption-label">Legenda</span><span class="gallery-caption-text ${caption?'':'gallery-caption-empty'}">${esc(caption||'Nenhuma legenda informada.')}</span></div>
-   <div class="photo-actions no-print"><input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)"><button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button><button class="btn" onclick="openGalleryEdit(${i})">✏️</button><button class="btn" onclick="openGalleryCaptionViewer(${i})" title="Visualizar legenda">🔍</button>${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}<button class="btn" onclick="removeGalleryItem(${i})">✕</button></div>
+  <div class="gallery-actions no-print">
+   <input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)">
+   <button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>
+   <button class="btn" onclick="openGalleryEdit(${i})" title="Editar título, data e legenda">✏️</button>
+   <button class="btn" onclick="toggleGalleryDetails(${i})" title="Visualizar informações">🔍</button>
+   ${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}
+   <button class="btn" onclick="removeGalleryItem(${i})">✕</button>
+  </div>
+  <div id="${detailsId}" class="gallery-details" aria-hidden="true">
+   <div class="gallery-info">
+    <b>${esc(title)}</b>
+    ${r.date?`<small>📅 ${esc(formatDate(r.date))}</small>`:''}
+    <div class="gallery-caption" aria-label="Legenda da foto"><span class="gallery-caption-label">Legenda</span><span class="gallery-caption-text ${caption?'':'gallery-caption-empty'}">${esc(caption||'Nenhuma legenda informada.')}</span></div>
+   </div>
   </div>
  </div>`;
  }).join('')}</div>`;
+}
+function toggleGalleryDetails(i){
+ const el=document.getElementById(`galleryDetails_${i}`); if(!el)return;
+ const isOpen=el.classList.toggle('open');
+ el.setAttribute('aria-hidden',String(!isOpen));
 }
 function openGalleryEdit(i){
  const r=state.gallery[i]; if(!r)return;
