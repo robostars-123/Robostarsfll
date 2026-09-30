@@ -365,6 +365,17 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
 .gallery-caption-text{display:block}
 .gallery-caption-empty{color:#7a8a8f;font-style:italic}
 </style>
+<style id="gallery-v43-final">
+/* Galeria: imagem maior e apenas ícones de edição/visualização abaixo */
+.gallery-image{height:280px!important;min-height:280px!important;position:relative!important;overflow:hidden!important;background:#eef5f2!important}
+.gallery-image img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+.gallery-photo-tools{display:none!important}
+.gallery-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;padding:10px 12px!important;border-top:1px solid var(--line)!important;background:#fff!important}
+.gallery-actions .gallery-icon-btn{width:42px!important;height:42px!important;padding:0!important;border:1px solid var(--line)!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:#f4f8f7!important;font-size:18px!important;line-height:1!important;cursor:pointer!important}
+.gallery-actions .gallery-icon-btn:hover{background:#e8f1ee!important}
+@media(max-width:900px){.gallery-image{height:260px!important;min-height:260px!important}}
+@media(max-width:560px){.gallery-image{height:300px!important;min-height:300px!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -751,6 +762,13 @@ aside a:hover, aside button:hover, aside [role="button"]:hover{
     <div id="teamAboutEditorFields" class="team-about-editor-fields" style="display:none;margin-top:14px">
       <div class="field"><label>Texto sobre a equipe</label><textarea id="teamAboutInput" placeholder="Conte um pouco sobre a equipe, sua história, interesses, conquistas e o que vocês valorizam."></textarea></div>
       <button class="btn green" onclick="saveTeamAboutText()">✓ Salvar texto</button>
+    </div>
+    <div id="galleryEditorFields" class="team-about-editor-fields" style="display:none;margin-top:14px">
+      <div class="form-grid">
+        <div class="field"><label>Título da foto</label><input id="galleryEditorTitle" placeholder="Ex.: Montagem inicial"></div>
+        <div class="field"><label>Data</label><input id="galleryEditorDate" type="date"></div>
+      </div>
+      <div class="field"><label>Legenda / contexto</label><textarea id="galleryEditorCaption" placeholder="Descreva o que está acontecendo na foto."></textarea></div>
     </div>
     <div class="image-editor" style="margin-top:14px">
       <div class="crop-stage"><canvas id="cropCanvas" width="700" height="500"></canvas></div>
@@ -1402,15 +1420,10 @@ function renderGallery(){
    const detailsId=`galleryDetails_${i}`;
    return `<div class="gallery-item">
   <div class="gallery-image" title="Foto da galeria">${r.photo?`<img src="${r.photo}" alt="${esc(title)}">`:'📷 Sem foto'}
-   ${r.photo?`<div class="gallery-photo-tools" aria-label="Ações da foto"><button type="button" onclick="event.stopPropagation();openGalleryInfo(${i})" title="Visualizar informações e legenda" aria-label="Visualizar informações e legenda">🔍</button><button type="button" onclick="event.stopPropagation();openGalleryPhotoEditor(${i})" title="Editar foto" aria-label="Editar foto">✎</button></div>`:''}
   </div>
   <div class="gallery-actions no-print">
    <input id="galleryPhoto_${i}" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden onchange="handleGalleryPhoto(${i},this)">
-   <button class="btn" onclick="galleryPhoto(${i})">${r.photo?'Trocar foto':'Adicionar foto'}</button>
-   <button class="btn" onclick="openGalleryEdit(${i})" title="Editar título, data e legenda">✏️</button>
-   <button class="btn" onclick="openGalleryInfo(${i})" title="Visualizar informações">🔍</button>
-   ${r.photo?`<button class="btn" onclick="openGalleryPhotoEditor(${i})">Ajustar</button><button class="btn" onclick="removeGalleryPhoto(${i})">🗑️</button><button class="btn" onclick="downloadDataImage(state.gallery[${i}].photo,'galeria-${i+1}.jpg')">Baixar</button>`:''}
-   <button class="btn" onclick="removeGalleryItem(${i})">✕</button>
+   ${r.photo?`<button type="button" class="gallery-icon-btn" onclick="openGalleryPhotoEditor(${i})" title="Editar foto e informações" aria-label="Editar foto e informações">✏️</button><button type="button" class="gallery-icon-btn" onclick="openGalleryInfo(${i})" title="Visualizar título, data e legenda" aria-label="Visualizar título, data e legenda">🔍</button>`:`<button class="btn" onclick="galleryPhoto(${i})">Adicionar foto</button>`}
   </div>
   <div id="${detailsId}" class="gallery-details" aria-hidden="true">
    <div class="gallery-info">
@@ -1489,6 +1502,16 @@ function openImageEditor(kind,index,src,isLogo){
   imageEditorState={kind,index,source:src||'',img:null,isLogo:!!isLogo};
   const title=isLogo?'Editar logo':'Editar foto';
   document.getElementById('imageEditorTitle').textContent=title;
+  const galleryFields=document.getElementById('galleryEditorFields');
+  const isGallery=kind==='galleryPhoto' && state.gallery[index];
+  if(galleryFields){
+    galleryFields.style.display=isGallery?'block':'none';
+    if(isGallery){
+      document.getElementById('galleryEditorTitle').value=state.gallery[index].title||'';
+      document.getElementById('galleryEditorDate').value=state.gallery[index].date||'';
+      document.getElementById('galleryEditorCaption').value=state.gallery[index].caption||state.gallery[index].description||state.gallery[index].legend||'';
+    }
+  }
   document.getElementById('imageEditorHint').textContent=isLogo
     ? 'Adicione, troque, ajuste, baixe ou exclua a logo usando as opções abaixo.'
     : 'Adicione, troque, ajuste, baixe ou exclua a foto usando as opções abaixo.';
@@ -1586,7 +1609,13 @@ function saveEditedImage(){
   if(kind==='teamPhoto')state.teamPhoto=data;
   else if(kind==='teamLogo')state.teamLogo=data;
   else if(kind==='memberPhoto' && state.members[index])state.members[index].photo=data;
-  else if(kind==='galleryPhoto' && state.gallery[index])state.gallery[index].photo=data;
+  else if(kind==='galleryPhoto' && state.gallery[index]){
+    state.gallery[index].photo=data;
+    state.gallery[index].title=document.getElementById('galleryEditorTitle')?.value||'';
+    state.gallery[index].date=document.getElementById('galleryEditorDate')?.value||'';
+    state.gallery[index].caption=document.getElementById('galleryEditorCaption')?.value||'';
+    delete state.gallery[index].description; delete state.gallery[index].legend;
+  }
   else if(kind==='buildPhoto' && state.buildSteps[index])state.buildSteps[index].photo=data;
   else if(kind==='attachmentPhoto' && state.robotAttachments[index])state.robotAttachments[index].photo=data;
   renderAll();queueSave();closeImageEditor();toast('Imagem atualizada.');
